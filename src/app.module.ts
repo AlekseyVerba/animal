@@ -28,6 +28,11 @@ import { User } from './models/user.model';
     }),
     SequelizeModule.forRoot({
       uri: process.env.DATABASE_URL,
+      dialectOptions: {
+        ssl: {
+          require: true, // This will help you. But you will see nwe error
+        }
+      },
       // dialect: 'postgres',
       // host: process.env.POSTGRES_HOST,
       // port: Number(process.env.POSTGRES_PORT),
