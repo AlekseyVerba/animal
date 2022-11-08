@@ -29,8 +29,10 @@ import { User } from './models/user.model';
     SequelizeModule.forRoot({
       uri: process.env.DATABASE_URL,
       dialectOptions: {
-        ssl: true,
-        rejectUnauthorized: false
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        }
       },
       dialect: 'postgres',
       // host: process.env.POSTGRES_HOST,
