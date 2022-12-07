@@ -131,8 +131,14 @@ export class AuthService {
         }
     }
 
-    async confirmRegistration(dto: RegistrationConfirmDto): Promise<User> {
-        return await this.tokenService.confirmRegistration(dto);
+    async confirmRegistration(dto: RegistrationConfirmDto) {
+        const user = await this.tokenService.confirmRegistration(dto);
+        const jwtToken = sign({ uid: user.uid, email: user.email }, JWT_SECRET)
+
+        return {
+            user,
+            jwtToken
+        }
     }
 
     async authCheck(uid: string) {

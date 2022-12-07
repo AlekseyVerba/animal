@@ -80,11 +80,12 @@ export class AuthController {
     @ApiBody(RegistrationConfirmTokenApiBody)
     @ApiResponse(RegistrationConfirmTokenApiResponse)
     @Post('registration/confirm')
-    async confirmRegistration(@Body() dto: RegistrationConfirmDto): Promise<IResponseSuccess<User>> {
+    async confirmRegistration(@Body() dto: RegistrationConfirmDto): Promise<IResponseSuccess<any>> {
         const result = await this.authService.confirmRegistration(dto)
         return {
             status: true,
             message: 'Пользователь подтвержден',
+            data: result
         }
     }
 
