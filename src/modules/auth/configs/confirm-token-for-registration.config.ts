@@ -5,7 +5,7 @@ export const RegistrationConfirmTokenApiBody: ApiBodyOptions = {
         type: 'object',
         properties: {
             email: { type: 'string' },
-            token: { type: 'string' }
+            code: { type: 'string' }
         }
     }
 };

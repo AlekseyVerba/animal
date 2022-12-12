@@ -1,4 +1,4 @@
 export class RegistrationConfirmDto {
     email: string;
-    token: string;
+    code: string;
 }

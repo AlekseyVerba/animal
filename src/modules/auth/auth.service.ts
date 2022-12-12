@@ -131,8 +131,8 @@ export class AuthService {
         }
     }
 
-    async confirmRegistration(dto: RegistrationConfirmDto) {
-        const user = await this.tokenService.confirmRegistration(dto);
+    async confirmRegistration({ code, email }: RegistrationConfirmDto) {
+        const user = await this.tokenService.confirmRegistration({ token: code, email });
         const jwtToken = sign({ uid: user.uid, email: user.email }, JWT_SECRET)
 
         return {
