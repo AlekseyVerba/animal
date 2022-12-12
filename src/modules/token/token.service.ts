@@ -58,6 +58,10 @@ export class TokenService {
             throw new BadRequestException(errObj);
         }
 
+        console.log('token')
+        console.log(tokenCandidate.expire)
+        console.log(Date.now())
+
         if (+tokenCandidate.expire <= Date.now()) {
             const errObj: IResponseFail = {
                 status: false,
