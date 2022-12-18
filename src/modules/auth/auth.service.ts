@@ -77,7 +77,12 @@ export class AuthService {
                 throw new InternalServerErrorException(objError)
             };
 
-            const res = await this.userTokenRepository.create({ token: code, type: USER_TOKEN_TYPE.Registration, userUid: user.uid });
+            const res = await this.userTokenRepository.create({ 
+                token: code, 
+                type: USER_TOKEN_TYPE.Registration, 
+                userUid: user.uid,
+                expire: Date.now() + (60 * 60 * 1000) + ''
+            });
 
             return user.uid;
         } catch(err) {
@@ -179,7 +184,12 @@ export class AuthService {
 
         const code = generate()
 
-        await this.userTokenRepository.create({ token: code, type: USER_TOKEN_TYPE.RememberPassword, userUid: candidate.uid })
+        await this.userTokenRepository.create({ 
+            token: code, 
+            type: USER_TOKEN_TYPE.RememberPassword, 
+            userUid: candidate.uid,
+            expire: Date.now() + (60 * 60 * 1000) + ''
+        })
 
         await this.messageService.rememberPassword({ code, email });
 

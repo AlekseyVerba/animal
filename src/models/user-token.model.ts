@@ -21,7 +21,7 @@ export class UserToken extends Model<UserToken> {
     @Column({ type: DataType.STRING })
     type: USER_TOKEN_TYPE;
 
-    @Column({ type: DataType.STRING, defaultValue: Date.now() + (60 * 60 * 1000) })
+    @Column({ type: DataType.STRING, allowNull: false })
     expire: string;
 
     @ForeignKey(() => User)
