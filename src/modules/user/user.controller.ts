@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Param, Post, UsePipes, ValidationPipe } from "@nestjs/common";
 import { IResponseSuccess } from "src/types/response/index.interface";
 import { UserService } from './user.service';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -6,6 +6,11 @@ import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 //CONFIGS
 import { CheckUserApiResponse, CheckUserByEmailApiBody } from './configs/check-user-by-email.config'
 
+//DTO
+import { CheckUserByEmailDto } from './dto/checkUserByEmail.dto';
+import { DeleteUserDto } from './dto/deleteUser.dto';
+
+@UsePipes(new ValidationPipe())
 @Controller('user')
 export class UserController {
     constructor(
@@ -16,16 +21,17 @@ export class UserController {
     @ApiBody(CheckUserByEmailApiBody)
     @ApiResponse(CheckUserApiResponse)
     @Post('check-user-by-email')
-    async isUserExistByEmail(@Body('email') email: string): Promise<boolean> {
+    async isUserExistByEmail(@Body() {email}: CheckUserByEmailDto): Promise<boolean> {
         return await this.userService.isUserExistByEmail(email);
     }
 
     @Delete(':userUid')
-    async deleteUser(@Param('userUid') userUid: string): Promise<IResponseSuccess<void>> {
-        const result = await this.userService.deleteUser(userUid);
+    async deleteUser(@Param() { userUid }: DeleteUserDto): Promise<IResponseSuccess<void>> {
+        await this.userService.deleteUser(userUid);
+
         return {
             status: true,
-            message: `Пользователь с uid - ${userUid} успешно удален`
+            message: `User with uid - ${userUid} deleted successfully`
         };
     }
 }

@@ -1,13 +1,11 @@
-import { Module } from '@nestjs/common'
-import { SequelizeModule } from '@nestjs/sequelize';
+import { forwardRef, Module } from '@nestjs/common'
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
-import { UserToken } from '../../models/user-token.model';
-import { User } from 'src/models/user.model';
+import { AppModule } from 'src/app.module';
 
 @Module({
     imports: [
-        SequelizeModule.forFeature([UserToken, User])
+        forwardRef(() => AppModule)
     ],
     controllers: [TokenController],
     providers: [TokenService],

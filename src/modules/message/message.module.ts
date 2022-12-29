@@ -5,8 +5,6 @@ import { MessageService } from './message.service';
 @Module({
     imports: [
         MailerModule.forRoot({
-            // transport: 'smtps://user@example.com:topsecret@smtp.example.com',
-            // or
             transport: {
               host: 'smtp.mail.ru',
               secure: false,

@@ -1,24 +1,39 @@
-import { Module } from "@nestjs/common";
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { SequelizeModule } from "@nestjs/sequelize";
+import { forwardRef, Module } from "@nestjs/common";
 
 //MODULES
-import { TokenModule } from '../token/token.model';
+import { TokenModule } from '../token/token.module';
 import { UserModule } from '../user/user.module';
 import { MessageModule } from '../message/message.module';
+import { AppModule } from "src/app.module";
 
-//MODELS
-import { UserToken } from '../../models/user-token.model';
-import { User } from '../../models/user.model';
+//SERVICES
+import { AuthService } from './auth.service';
+
+//CONTROLLERS
+import { AuthController } from './auth.controller';
+
+//VALIDATIONS
+import { IsUserNotExistByEmailConstraint } from 'src/validations/userNotExistByEmail.validation';
+import { IsUserExistConstraint } from 'src/validations/userExists.validation';
+import { IsUserExistByEmailConstraint } from 'src/validations/userExistByEmail.validation';
+import { IsTokenExistsAndActiveConstraint } from 'src/validations/tokenExistsAndActive.validation';
+
 
 @Module({
     imports: [ 
         UserModule, 
         MessageModule, 
         TokenModule,
-        SequelizeModule.forFeature([ UserToken, User ])],
+        forwardRef(() => AppModule),
+    ],
+
     controllers: [AuthController],
-    providers: [AuthService]
+    providers: [ 
+        AuthService, 
+        IsUserNotExistByEmailConstraint, 
+        IsUserExistConstraint, 
+        IsUserExistByEmailConstraint,
+        IsTokenExistsAndActiveConstraint
+    ]
 })
 export class AuthModule { }

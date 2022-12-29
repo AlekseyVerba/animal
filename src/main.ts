@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { useContainer } from 'class-validator';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,7 +25,10 @@ async function bootstrap() {
 
   SwaggerModule.setup('swagger', app, document);
   
+
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
   app.enableCors();
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3001);
 }
 bootstrap();

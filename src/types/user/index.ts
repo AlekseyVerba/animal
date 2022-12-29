@@ -1,3 +1,3 @@
-import { User } from '../../models/user.model';
+import { IUser } from 'src/modules/user/interfaces/user.interface';
 
-export type IUserForToken = Pick<User, 'uid' | 'email'>
+export type IUserForToken = Pick<IUser, 'uid' | 'email'>

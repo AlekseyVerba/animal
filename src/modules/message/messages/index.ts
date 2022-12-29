@@ -7,7 +7,7 @@ export class Messages {
 
     static rememberPassword(code: string): string {
         return `
-           <div>To change your password follow the link. <a href='${process.env.DOMAIN}/${code}'>link</a></div>
+           <div>To change your password write this code '${code}'</div>
         `
     }
 }

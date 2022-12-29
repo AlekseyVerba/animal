@@ -1,121 +1,95 @@
-import { BadRequestException, GatewayTimeoutException, Injectable, NotFoundException } from '@nestjs/common'
-import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/models/user.model';
-import { IResponseFail } from 'src/types/response/index.interface';
-import { UserToken } from '../../models/user-token.model';
+import { HttpException, Inject, Injectable } from '@nestjs/common'
+import { Pool } from 'pg';
+
+//DTO
+import { GetTokenDto } from './dto/get-token.dto'
+import { CreateTokenDto } from './dto/create-token.dto';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
+
+//INTERFACES
+import { DATABASE_POOL } from 'src/constants/database.constants';
+import { IResponseFail } from 'src/types/response/index.interface';
 import { USER_TOKEN_TYPE } from '../../types/user-token';
 
 @Injectable()
 export class TokenService {
     constructor(
-        @InjectModel(UserToken)
-        private userTokenRepository: typeof UserToken,
-        @InjectModel(User)
-        private userRepository: typeof User,
+        @Inject(DATABASE_POOL)
+        private readonly database: Pool
     ) { }
 
-    async confirmRegistration({ token, email }: ConfirmRegistrationDto): Promise<User> {
-
-        const user = await this.userRepository.findOne({
-            where: {
-                email
-            }
-        })
-
-        if(!user) {
+    async createToken({ token, type, userUid, expire }: CreateTokenDto) {
+        try {
+            return (await this.database.query(`
+                INSERT INTO user_token(token, type, "serUid", expire)
+                VALUES(
+                    $1, $2, $3, $4
+                )
+                RETURNING *
+            `, [token, type, userUid, expire])).rows[0]
+        } catch (err) {
             const errObj: IResponseFail = {
                 status: false,
-                message: 'Пользователь не найден',
+                message: 'Ошибка',
+                errors: err
             }
-
-            throw new NotFoundException(errObj);
+            throw new HttpException(errObj, err.status || 500)
         }
-
-        const tokenCandidate = await this.userTokenRepository.findOne({
-            where: {
-                userUid: user.uid,
-                token,
-                type: USER_TOKEN_TYPE.Registration
-            }
-        })
-
-        if (!tokenCandidate) {
-            const errObj: IResponseFail = {
-                status: false,
-                message: 'Токен не существует у данного пользователя',
-            }
-
-            throw new BadRequestException(errObj);
-        }
-
-        if (!tokenCandidate.isActive) {
-            const errObj: IResponseFail = {
-                status: false,
-                message: 'Данный токен не активен',
-            }
-
-            throw new BadRequestException(errObj);
-        }
-
-        console.log('token')
-        console.log(tokenCandidate.expire)
-        console.log(Date.now())
-
-        if (+tokenCandidate.expire <= Date.now()) {
-            const errObj: IResponseFail = {
-                status: false,
-                message: 'Истекло время токена',
-            }
-
-            throw new GatewayTimeoutException(errObj);
-        }
-
-        tokenCandidate.update({ isActive: false })
-        
-        const currentUser = (await this.userRepository.findByPk(user.uid)).update({ isActivate: true })
-
-        return currentUser
     }
 
-    async confirmChangePasswordToken(token: string): Promise<string> {
-        const tokenCandidate = await this.userTokenRepository.findOne({
-            where: {
-                token,
-                type: USER_TOKEN_TYPE.RememberPassword
-            }
-        })
+    async confirmRegistration({ token, email }: ConfirmRegistrationDto) {
+        const client = await this.database.connect()
+        try {
+            await client.query('BEGIN')
 
+            const [user] = await Promise.all([
+                client.query(`
+                    UPDATE users
+                    SET "isActivate" = true
+                    WHERE email = $1
+                    RETURNING uid, email, "isActivate"
+                `, [email]),
 
-        if (!tokenCandidate) {
-            const errObj: IResponseFail = {
+                client.query(`
+                    UPDATE user_token
+                    SET "isActive" = false
+                    FROM users
+                    WHERE user_token.token = $1 AND users.email = $2 AND user_token."isActive" = true AND user_token.type = $3;
+                `, [token, email, USER_TOKEN_TYPE.Registration])
+            ])
+
+            await client.query('COMMIT')
+
+            return user.rows[0]
+        } catch (err) {
+            await client.query('ROLLBACK')
+
+            const objError: IResponseFail = {
                 status: false,
-                message: 'Токен не существует',
+                message: err.message
             }
-
-            throw new BadRequestException(errObj);
+            
+            throw new HttpException(objError, err.status || 500)
+        } finally {
+            await client.release()
         }
 
-        if (!tokenCandidate.isActive) {
+    }
+
+    async getToken({ token, userUid }: GetTokenDto) {
+        try {
+            return (await this.database.query(`
+                SELECT * FROM user_token
+                WHERE token = $1 AND "userUid" = $2 AND "isActive" = true
+                LIMIT 1
+            `, [token, userUid])).rows[0]
+        } catch (err) {
             const errObj: IResponseFail = {
                 status: false,
-                message: 'Данный токен не активен',
+                message: err.message,
+                errors: err
             }
-
-            throw new BadRequestException(errObj);
+            throw new HttpException(errObj, err.status || 500)
         }
-
-        if (+tokenCandidate.expire <= Date.now()) {
-            const errObj: IResponseFail = {
-                status: false,
-                message: 'Истекло время токена',
-            }
-
-            throw new GatewayTimeoutException(errObj);
-        }
-
-        tokenCandidate.update({ isActive: false })
-
-        return tokenCandidate.userUid;
     }
 }

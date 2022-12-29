@@ -4,8 +4,9 @@ export const ChangePasswordApiBody: ApiBodyOptions = {
     schema: {
         type: 'object',
         properties: {
+            email: { type: 'string' },
             password: { type: 'string' },
-            secondPassword: { type: 'string' },
+            code: { type: 'string' }
         }
     }
 };
@@ -16,7 +17,7 @@ export const ChangePasswordApiResponse: ApiResponseOptions = {
         type: "object",
         example: {
             status: true,
-            message: 'Пароль изменен'
+            message: 'Password was changed'
         }
 
     }

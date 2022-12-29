@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+
+//SERVICES
 import { AuthService } from './auth.service';
-import { IResponseSuccess } from '../../types/response/index.interface';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 //CONFIGS
 import { CheckAuthApiResponse } from './configs/check-auth.config'
@@ -20,15 +21,14 @@ import { RegistrationConfirmDto } from './dto/registration-confirm.dto';
 import { LoginDto } from './dto/login.dto';
 import { RememberPasswordDto } from './dto/remember-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-//MODEL
-import { User } from "src/models/user.model";
 
 //DECORATORS
 import { UserProperty } from 'src/decorators/userProperty.decorator';
 
 //INTERFACES
-import { IUserWithToken } from './index.interface';
+import { IResponseSuccess } from '../../types/response/index.interface';
 
+@UsePipes(new ValidationPipe())
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -40,11 +40,11 @@ export class AuthController {
     @ApiResponse(CheckAuthApiResponse)
     @Get('/check')
     @UseGuards(AuthGuard)
-    async authCheck(@UserProperty('uid') uid: string): Promise<IResponseSuccess<IUserWithToken>> {
+    async authCheck(@UserProperty('uid') uid: string): Promise<IResponseSuccess<any>> {
         const result = await this.authService.authCheck(uid);
         return {
             status: true,
-            message: 'Пользователь успешно подтвержден',
+            message: 'User successfully verified',
             data: result
         }
     }
@@ -52,13 +52,13 @@ export class AuthController {
     @ApiOperation({ summary: 'Change password' })
     @ApiBody(ChangePasswordApiBody)
     @ApiResponse(ChangePasswordApiResponse)
-    @Post('/change-password/:token')
-    async changePassword(@Body() dto: ChangePasswordDto, @Param('token') token: string): Promise<IResponseSuccess<void>> {
-        dto.token = token;
-        const result = await this.authService.changePassword(dto)
+    @Post('/change-password/')
+    async changePassword(@Body() dto: ChangePasswordDto): Promise<IResponseSuccess<void>> {
+        await this.authService.changePassword(dto)
+
         return {
             status: true,
-            message: 'Пароль изменен'
+            message: 'Password was changed'
         }
     }
 
@@ -68,9 +68,10 @@ export class AuthController {
     @Post('registration')
     async registration(@Body() dto: RegistrationDto): Promise<IResponseSuccess<string>> {
         const result = await this.authService.registration(dto);
+
         return {
             status: true,
-            message: 'На вашу почту отправлен код. Необходимо подтверждение!',
+            message: 'A code has been sent to your email. Confirmation required!',
             data: result
         }
 
@@ -84,7 +85,7 @@ export class AuthController {
         const result = await this.authService.confirmRegistration(dto)
         return {
             status: true,
-            message: 'Пользователь подтвержден',
+            message: 'User successfully verified',
             data: result
         }
     }
@@ -93,11 +94,11 @@ export class AuthController {
     @ApiBody(AuthorizationApiBody)
     @ApiResponse(AuthorizationApiResponse)
     @Post('login')
-    async login(@Body() dto: LoginDto): Promise<IResponseSuccess<IUserWithToken>> {
+    async login(@Body() dto: LoginDto): Promise<IResponseSuccess<any>> {
         const result = await this.authService.login(dto);
         return {
             status: true,
-            message: 'Успешно',
+            message: 'Success',
             data: result
         }
     }
@@ -107,10 +108,11 @@ export class AuthController {
     @ApiResponse(RememberPasswordApiResponse)
     @Post('remember-password')
     async rememberPassword(@Body() dto: RememberPasswordDto): Promise<IResponseSuccess<void>> {
-        const result = await this.authService.rememberPassword(dto.email);
+        await this.authService.rememberPassword(dto.email);
+
         return {
             status: true,
-            message: 'На вашу почту отправлена ссылка'
+            message: 'A code has been sent to your email. Confirmation required!'
         }
     }
 
