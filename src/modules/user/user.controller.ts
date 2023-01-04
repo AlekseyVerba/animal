@@ -14,7 +14,6 @@ import { AuthGuard } from "src/guards/auth.guard";
 import { UserProperty } from "src/decorators/userProperty.decorator";
 import { UpdateUserDto } from './dto/updateUser.dto';
 
-@UseGuards(AuthGuard)
 @ApiTags('User')
 @UsePipes(new ValidationPipe())
 @Controller('user')
@@ -32,6 +31,7 @@ export class UserController {
     }
 
     @ApiOperation({ summary: 'Delete user' })
+    @UseGuards(AuthGuard)
     @Delete(':userUid')
     async deleteUser(@Param() { userUid }: DeleteUserDto): Promise<IResponseSuccess<void>> {
         await this.userService.deleteUser(userUid);
@@ -42,6 +42,7 @@ export class UserController {
         };
     }
 
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Update user' })
     @ApiBody(UpdateUserApiBody)
     @Put('')
