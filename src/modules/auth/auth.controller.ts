@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 //SERVICES
 import { AuthService } from './auth.service';
@@ -29,6 +29,7 @@ import { UserProperty } from 'src/decorators/userProperty.decorator';
 import { IResponseSuccess } from '../../types/response/index.interface';
 
 @UsePipes(new ValidationPipe())
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     constructor(

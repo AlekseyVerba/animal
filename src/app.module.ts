@@ -14,7 +14,7 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MessageModule } from './modules/message/message.module';
 import { TokenModule } from './modules/token/token.module';
-
+import { TagModule } from './modules/tag/tag.module';
 
 import { DATABASE_POOL } from './constants/database.constants';
 
@@ -27,7 +27,8 @@ import { DATABASE_POOL } from './constants/database.constants';
     UserModule,
     AuthModule,
     MessageModule,
-    TokenModule
+    TokenModule,
+    TagModule
   ],
   controllers: [AppController],
   providers: [
