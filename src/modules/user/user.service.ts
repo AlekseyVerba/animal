@@ -1,5 +1,5 @@
 import { ConflictException, HttpException, Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { Pool } from 'pg'
+import { Pool, PoolClient } from 'pg'
 import * as pgFormat from 'pg-format';
 
 //DTO
@@ -13,6 +13,7 @@ import { DATABASE_POOL } from 'src/constants/database.constants';
 
 //SERVICES
 import { FileService } from 'src/modules/file/file.service'
+import imageSize from "image-size";
 
 @Injectable()
 export class UserService {
@@ -158,7 +159,59 @@ export class UserService {
         }
     }
 
-    async updateUser({tags, uid, avatar, ...dto}: UpdateUserDto) {
+    async updateUserAvatar(uid: string, avatar: Express.Multer.File, client?: PoolClient) {
+        try {
+            let currentUserAvatar = (await client.query(`
+            SELECT * FROM user_avatar
+            WHERE user_uid = $1
+        `, [uid])).rows[0]
+
+            const file = await this.fileService.createFile(avatar, 'users')
+
+            const currentImageSize = await imageSize(avatar.buffer)
+
+            const avatars = (await Promise.all([
+                this.fileService.createResizedImage(file, 70, { width: 24, height: 24 }),
+                this.fileService.createResizedImage(file, 70, { width: 48, height: 48 }),
+                this.fileService.createResizedImage(file, 70, { width: 128, height: 128 }),
+                currentImageSize.width > 800 ?
+                    this.fileService.createResizedImage(file, 70, { width: 800 })
+                    : this.fileService.generateFileToJPG(file, 70)
+            ])).map((avatar: string) => avatar.split('assets/')[1])
+
+
+            if (currentUserAvatar) {
+                this.fileService.deleteFile(currentUserAvatar.small)
+                this.fileService.deleteFile(currentUserAvatar.middle)
+                this.fileService.deleteFile(currentUserAvatar.large)
+                this.fileService.deleteFile(currentUserAvatar.default_avatar)
+
+                currentUserAvatar = (await client.query(`
+                UPDATE user_avatar
+                SET small = $2, middle = $3, large = $4, default_avatar = $5
+                WHERE user_uid = $1 
+            `, [uid, ...avatars])).rows[0]
+            } else {
+                currentUserAvatar = (await client.query(`
+                INSERT INTO user_avatar(user_uid, small, middle, large, default_avatar)
+                VALUES (
+                    $1, $2, $3, $4, $5
+                )
+            `, [uid, ...avatars])).rows[0]
+            }
+
+            this.fileService.deleteFile(file.fullPath)
+        } catch (err) {
+            const errObj: IResponseFail = {
+                status: false,
+                message: err.message || 'Error while working with file',
+            }
+
+            throw new HttpException(errObj, err.status || 500);
+        }
+    }
+
+    async updateUser({ tags, uid, avatar, ...dto }: UpdateUserDto) {
         const client = await this.database.connect()
         try {
 
@@ -174,11 +227,8 @@ export class UserService {
             }
 
             if (avatar) {
-                const result = await this.fileService.createFile(avatar, 'users')
-                console.log(result)
+                await this.updateUserAvatar(uid, avatar, client)
             }
-
-            return true
 
             if (tags && tags.length) {
                 const values = tags.map(tag => ([uid, tag]))
@@ -192,7 +242,7 @@ export class UserService {
             let i: number = 2;
             const values = []
 
-            for(const key in dto ) {
+            for (const key in dto) {
                 query += `${key} = $${i}, `;
                 i++
                 values.push(dto[key])

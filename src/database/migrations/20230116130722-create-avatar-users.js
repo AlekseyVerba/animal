@@ -17,7 +17,10 @@ module.exports = {
       large: {
         type: Sequelize.TEXT,
       },
-      userUid: {
+      default_avatar: {
+        type: Sequelize.TEXT,
+      },
+      user_uid: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
