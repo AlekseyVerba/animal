@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards, UsePipes } from "@nestjs/common";
 import { UserProperty } from "src/decorators/userProperty.decorator";
 import { AuthGuard } from "src/guards/auth.guard";
 import { TagService } from './tag.service';
@@ -10,6 +10,8 @@ import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 //CONFIGS
 import { AddTagToUserApiBody } from './configs/addTagToUser.config';
 
+//PIPES
+import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 @UseGuards(AuthGuard)
 @ApiTags('Tag')

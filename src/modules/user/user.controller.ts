@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Delete, HttpException, HttpStatus, Param, ParseFilePipe, ParseFilePipeBuilder, Post, Put, UploadedFile, UseGuards, UseInterceptors, UsePipes } from "@nestjs/common";
 import { IResponseSuccess } from "src/types/response/index.interface";
 import { UserService } from './user.service';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from "@nestjs/platform-express";
+import { fileFilter } from 'src/modules/file/file.filter';
 
 //CONFIGS
 import { CheckUserApiResponse, CheckUserByEmailApiBody } from './configs/check-user-by-email.config'
@@ -14,19 +16,22 @@ import { AuthGuard } from "src/guards/auth.guard";
 import { UserProperty } from "src/decorators/userProperty.decorator";
 import { UpdateUserDto } from './dto/updateUser.dto';
 
+//PIPES
+import { ValidationPipe } from 'src/pipes/validation.pipe';
+
 @ApiTags('User')
 @UsePipes(new ValidationPipe())
 @Controller('user')
 export class UserController {
     constructor(
-        private readonly userService: UserService
-    ) {}
+        private readonly userService: UserService,
+    ) { }
 
     @ApiOperation({ summary: 'Check exist user by email' })
     @ApiBody(CheckUserByEmailApiBody)
     @ApiResponse(CheckUserApiResponse)
     @Post('check-user-by-email')
-    async isUserExistByEmail(@Body() {email}: CheckUserByEmailDto): Promise<boolean> {
+    async isUserExistByEmail(@Body() { email }: CheckUserByEmailDto): Promise<boolean> {
         return await this.userService.isUserExistByEmail(email);
     }
 
@@ -45,9 +50,17 @@ export class UserController {
     @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Update user' })
     @ApiBody(UpdateUserApiBody)
+    @UseInterceptors(FileInterceptor('avatar', {
+        fileFilter: fileFilter(/\/(jpg|jpeg|png)$/)
+    }))
     @Put('')
-    async updateUser(@UserProperty('uid') uid: string, @Body() dto: UpdateUserDto) {
+    async updateUser(
+        @UserProperty('uid') uid: string,
+        @Body() dto: UpdateUserDto,
+        @UploadedFile() avatar: Express.Multer.File
+    ) {
         dto.uid = uid
+        dto.avatar = avatar
 
         return await this.userService.updateUser(dto)
     }

@@ -11,11 +11,15 @@ import { IUser } from './interfaces/user.interface';
 import { IResponseFail } from "src/types/response/index.interface";
 import { DATABASE_POOL } from 'src/constants/database.constants';
 
+//SERVICES
+import { FileService } from 'src/modules/file/file.service'
+
 @Injectable()
 export class UserService {
     constructor(
         @Inject(DATABASE_POOL)
-        private readonly database: Pool
+        private readonly database: Pool,
+        private readonly fileService: FileService,
     ) { }
 
     async isUserExistByEmail(email: string): Promise<boolean> {
@@ -154,7 +158,7 @@ export class UserService {
         }
     }
 
-    async updateUser({tags, uid, ...dto}: UpdateUserDto) {
+    async updateUser({tags, uid, avatar, ...dto}: UpdateUserDto) {
         const client = await this.database.connect()
         try {
 
@@ -168,6 +172,13 @@ export class UserService {
 
                 throw new ConflictException(errObj)
             }
+
+            if (avatar) {
+                const result = await this.fileService.createFile(avatar, 'users')
+                console.log(result)
+            }
+
+            return true
 
             if (tags && tags.length) {
                 const values = tags.map(tag => ([uid, tag]))

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards, UsePipes } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 //SERVICES
@@ -27,6 +27,9 @@ import { UserProperty } from 'src/decorators/userProperty.decorator';
 
 //INTERFACES
 import { IResponseSuccess } from '../../types/response/index.interface';
+
+//PIPES
+import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 @UsePipes(new ValidationPipe())
 @ApiTags('Auth')
@@ -78,7 +81,7 @@ export class AuthController {
 
     }
 
-    @ApiOperation({ summary: 'Confirm token for registration' })
+    @ApiOperation({ summary: 'Confirm code for registration' })
     @ApiBody(RegistrationConfirmTokenApiBody)
     @ApiResponse(RegistrationConfirmTokenApiResponse)
     @Post('registration/confirm')

@@ -1,7 +1,7 @@
 export class Messages {
     static registration(code: string): string {
         return `
-            Token for registration: ${code}
+            Code for registration: ${code}
         `
     }
 

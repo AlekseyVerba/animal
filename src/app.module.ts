@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Pool } from 'pg';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
@@ -15,11 +16,15 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MessageModule } from './modules/message/message.module';
 import { TokenModule } from './modules/token/token.module';
 import { TagModule } from './modules/tag/tag.module';
+import { FileModule } from './modules/file/file.module';
 
 import { DATABASE_POOL } from './constants/database.constants';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'assets'),
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: join(__dirname, '..', '.env')
@@ -28,7 +33,8 @@ import { DATABASE_POOL } from './constants/database.constants';
     AuthModule,
     MessageModule,
     TokenModule,
-    TagModule
+    TagModule,
+    FileModule
   ],
   controllers: [AppController],
   providers: [

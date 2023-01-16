@@ -26,4 +26,5 @@ export class UpdateUserDto {
     city?: string;
     @IsOptional()
     tags?: number[]
+    avatar: Express.Multer.File
 }
