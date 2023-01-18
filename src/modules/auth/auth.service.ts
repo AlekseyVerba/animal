@@ -165,7 +165,12 @@ export class AuthService {
                 jwtToken
             }
         } catch (err) {
-            throw err
+            const objError: IResponseFail = {
+                status: false,
+                message: err.message
+            }
+
+            throw new HttpException(objError, err.status || 500)
         }
     }
 

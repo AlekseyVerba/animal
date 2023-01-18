@@ -25,13 +25,23 @@ export class TagController {
     @ApiOperation({ summary: 'Get all parent tags' })
     @Get('all-parent')
     async getAllParentTags() {
-        return await this.tagService.getAllParentTags();
+        const data = await this.tagService.getAllParentTags();
+
+        return {
+            status: true,
+            data
+        }
     }
 
     @ApiOperation({ summary: 'Get all child tags from parent tag' })
     @Get(':parent_id/childs')
     async getAllChildsTagsFromParent(@Param('parent_id') parent_id: number) {
-        return await this.tagService.getAllChildsTagsFromParent(parent_id)
+        const data = await this.tagService.getAllChildsTagsFromParent(parent_id)
+
+        return {
+            status: true,
+            data
+        }
     }
 
     @ApiOperation({ summary: 'Add tag to user' })
@@ -39,7 +49,12 @@ export class TagController {
     @Post('add/user')
     async addTagToUser(@UserProperty('uid') uid: string, @Body() dto: AddTagToUserDto) {
         dto.uid = uid
-        return await this.tagService.addTagToUser(dto)
+        const data = await this.tagService.addTagToUser(dto)
+
+        return {
+            status: true,
+            data
+        }
     }
 
 }

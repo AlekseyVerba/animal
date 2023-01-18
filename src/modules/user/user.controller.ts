@@ -62,6 +62,12 @@ export class UserController {
         dto.uid = uid
         dto.avatar = avatar
 
-        return await this.userService.updateUser(dto)
+        const data = await this.userService.updateUser(dto)
+
+        return {
+            status: true,
+            message: 'User has been updated',
+            data
+        }
     }
 }

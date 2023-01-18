@@ -14,9 +14,7 @@ import { TagService } from 'src/modules/tag/tag.service'
 export class TagExistsConstraint implements ValidatorConstraintInterface {
     constructor(@Inject(TagService) private tagService: TagService) { }
     async validate(userName: any, args: ValidationArguments) {
-        console.log('yyy')
         return this.tagService.getTagById(userName).then(result => {
-            console.log(result)
             return !!result
         });
     }
