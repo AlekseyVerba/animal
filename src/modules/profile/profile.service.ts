@@ -179,8 +179,8 @@ export class ProfileService {
             (SELECT COUNT(*) FROM user_pet_followers WHERE pet_id = $1) as followers_count
             FROM pets
             INNER JOIN users ON pets.user_uid = users.uid
-            INNER JOIN user_avatar ON users.uid = user_avatar.user_uid
-            INNER JOIN pet_avatar ON pets.id = pet_avatar.pet_id
+            LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
+            LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
             INNER JOIN tags tags_type ON pets.type = tags_type.id
             LEFT JOIN tags tags_breed ON pets.breed = tags_breed.id
             WHERE pets.id = $1
