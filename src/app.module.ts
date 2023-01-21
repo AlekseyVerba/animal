@@ -17,6 +17,8 @@ import { MessageModule } from './modules/message/message.module';
 import { TokenModule } from './modules/token/token.module';
 import { TagModule } from './modules/tag/tag.module';
 import { FileModule } from './modules/file/file.module';
+import { PetModule } from './modules/pet/pet.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 import { DATABASE_POOL } from './constants/database.constants';
 
@@ -34,7 +36,9 @@ import { DATABASE_POOL } from './constants/database.constants';
     MessageModule,
     TokenModule,
     TagModule,
-    FileModule
+    FileModule,
+    PetModule,
+    ProfileModule
   ],
   controllers: [AppController],
   providers: [

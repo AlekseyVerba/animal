@@ -1,4 +1,4 @@
-import { ConflictException, HttpException, Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { ConflictException, HttpException, Inject, Injectable } from "@nestjs/common";
 import { Pool, PoolClient } from 'pg'
 import * as pgFormat from 'pg-format';
 
@@ -50,7 +50,7 @@ export class UserService {
                 LIMIT 1
             `, [uid])).rows[0]
 
-            return candidate ? true : false;
+            return !!candidate;
         } catch (err) {
             console.log(err)
             const errObj: IResponseFail = {
@@ -152,7 +152,7 @@ export class UserService {
         } catch (err) {
             const errObj: IResponseFail = {
                 status: false,
-                message: 'User is not found',
+                message: err.message || 'User is not found',
             }
 
             throw new HttpException(errObj, err.status || 500);
@@ -200,7 +200,7 @@ export class UserService {
             `, [uid, ...avatars])).rows[0]
             }
 
-            this.fileService.deleteFile(file.fullPath)
+            // this.fileService.deleteFile(file.fullPath)
         } catch (err) {
             const errObj: IResponseFail = {
                 status: false,
@@ -268,7 +268,11 @@ export class UserService {
             return User
         } catch (err) {
             await client.query('ROLLBACK')
-            return new HttpException(err.message, err.status || 500)
+            const errObj: IResponseFail = {
+                status: false,
+                message: err.message,
+            }
+            throw new HttpException(errObj, err.status || 500)
         } finally {
             await client.release()
         }

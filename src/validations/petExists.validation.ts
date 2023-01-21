@@ -5,34 +5,30 @@ import {
     ValidatorConstraint,
     ValidatorConstraintInterface,
     ValidationArguments,
-    isUUID
+    isNumber
 } from 'class-validator';
-import { UserService } from 'src/modules/user/user.service';
+import { PetService } from 'src/modules/pet/pet.service'
 
 @Injectable()
 @ValidatorConstraint({ async: true })
-export class IsUserExistConstraint implements ValidatorConstraintInterface {
-    constructor(@Inject(UserService) private userService: UserService) { }
+export class IsPetExistConstraint implements ValidatorConstraintInterface {
+    constructor(@Inject(PetService) private petService: PetService) { }
 
     async validate(userName: any, args: ValidationArguments) {
-        if (!isUUID(userName)) {
-            return false;
-        }
-
-        return this.userService.isUserExistByUid(userName).then(result => {
-            return result
+        return this.petService.getPetById(userName).then(result => {
+            return !!result
         });
     }
 }
 
-export function IsUserExist(validationOptions?: ValidationOptions) {
+export function IsPetExist(validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
             constraints: [],
-            validator: IsUserExistConstraint,
+            validator: IsPetExistConstraint,
         });
     };
 }

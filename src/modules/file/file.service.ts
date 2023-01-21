@@ -27,7 +27,10 @@ export class FileService {
             return (await sharp(`${join(__dirname, '..', '..', '..', 'assets')}/${file.fullPath}`)
                 .jpeg({ quality })
                 .resize(resizeOptions)
-                .toFile(join(__dirname, '..', '..', '..', 'assets', file.nameDir, newNameFile + '.jpg')) as any).options.fileOut
+                .toFile(join(__dirname, '..', '..', '..', 'assets', file.nameDir, newNameFile + '.jpg'), (err,inf) => {
+                    console.log(err)
+                    console.log(inf)
+                }) as any).options.fileOut
         } catch(err) {
             const errObj: IResponseFail = {
                 status: false,
@@ -51,7 +54,10 @@ export class FileService {
 
             return (await sharp(`${join(__dirname, '..', '..', '..', 'assets')}/${file.fullPath}`)
                 .jpeg({ quality })
-                .toFile(join(__dirname, '..', '..', '..', 'assets', file.nameDir, newNameFile + '.jpg')) as any).options.fileOut
+                .toFile(join(__dirname, '..', '..', '..', 'assets', file.nameDir, newNameFile + '.jpg'), (err,inf) => {
+                    console.log(err)
+                    console.log(inf)
+                }) as any).options.fileOut
         } catch(err) {
             const errObj: IResponseFail = {
                 status: false,
