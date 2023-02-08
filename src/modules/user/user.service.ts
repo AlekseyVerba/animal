@@ -230,12 +230,27 @@ export class UserService {
                 await this.updateUserAvatar(uid, avatar, client)
             }
 
-            if (tags && tags.length) {
-                const values = tags.map(tag => ([uid, tag]))
+            if (tags) {
 
-                await this.database.query(pgFormat(`
-                    INSERT INTO user_tag VALUES %L
-                `, values), [])
+                const addedTagsUser = (await this.database.query(`
+                    SELECT * FROM user_tag
+                    WHERE user_uid = $1
+                `, [uid])).rows.map(tag => tag.tag_id)
+
+                const existButMustBeAddedIds = tags.filter(tag => !addedTagsUser.includes(tag)).map(tag => ([uid, tag]))
+                const mustBeDeletedIds = addedTagsUser.filter(tag => !tags.includes(tag))
+
+                if (mustBeDeletedIds.length) {
+                    this.database.query(pgFormat(`
+                        DELETE FROM user_tag WHERE tag_id IN (%L) AND user_uid = %L
+                    `, mustBeDeletedIds, uid))
+                }
+
+                if (existButMustBeAddedIds.length) {
+                    this.database.query(pgFormat(`
+                        INSERT INTO user_tag VALUES %L
+                    `, existButMustBeAddedIds), [])
+                }
             }
 
             let query = ``;

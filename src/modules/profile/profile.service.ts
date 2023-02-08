@@ -144,37 +144,29 @@ export class ProfileService {
         try {
             const result = (await this.database.query(`
             SELECT pets.id, pets.name, pets.bio, pets.date_of_birthday,
-            JSON_AGG(
-                json_build_object(
-                    'uid',users.uid,
-                    'name',users.name,
-                    'avatars',json_build_object(
-                        'small',user_avatar.small,
-                        'middle',user_avatar.middle,
-                        'large',user_avatar.large,
-                        'default_avatar',user_avatar.default_avatar
-                    )
+            json_build_object(
+                'uid',users.uid,
+                'name',users.name,
+                'avatars',json_build_object(
+                    'small',user_avatar.small,
+                    'middle',user_avatar.middle,
+                    'large',user_avatar.large,
+                    'default_avatar',user_avatar.default_avatar
                 )
             ) AS user,
-            JSON_AGG(
-                json_build_object(
-                    'small',pet_avatar.small,
-                    'middle',pet_avatar.middle,
-                    'large',pet_avatar.large,
-                    'default_avatar',pet_avatar.default_avatar
-                )
+            json_build_object(
+                'small',pet_avatar.small,
+                'middle',pet_avatar.middle,
+                'large',pet_avatar.large,
+                'default_avatar',pet_avatar.default_avatar
             ) AS avatars,
-            JSON_AGG(
-                json_build_object(
-                    'id',tags_type.id,
-                    'name',tags_type.name
-                )
+            json_build_object(
+                'id',tags_type.id,
+                'name',tags_type.name
             ) AS type,
-            JSON_AGG(
-                json_build_object(
-                    'id',tags_breed.id,
-                    'name',tags_breed.name
-                )
+            json_build_object(
+                'id',tags_breed.id,
+                'name',tags_breed.name
             ) AS breed,
             (SELECT COUNT(*) FROM user_pet_followers WHERE pet_id = $1) as followers_count
             FROM pets
@@ -184,15 +176,12 @@ export class ProfileService {
             INNER JOIN tags tags_type ON pets.type = tags_type.id
             LEFT JOIN tags tags_breed ON pets.breed = tags_breed.id
             WHERE pets.id = $1
-            GROUP BY pets.id, pets.name;
+            GROUP BY 
+                pets.id, pets.name, users.uid, 
+                user_avatar.small, user_avatar.middle, user_avatar.large, user_avatar.default_avatar,
+                pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar,
+                tags_type.id, tags_breed.id
         `, [pet_id])).rows[0]
-
-        if (result) {
-            result.user = result.user[0]
-            result.avatars = result.avatars[0]
-            result.type = result.type[0]
-            result.breed = result.breed[0]
-        }
 
         return result
         } catch (err) {
@@ -217,25 +206,31 @@ export class ProfileService {
                         'large',user_avatar.large,
                         'default_avatar',user_avatar.default_avatar
                     ) AS avatars,
-                    ARRAY_AGG(
-                        json_build_object(
-                            'id', pets.id,
-                            'name', pets.name,
-                            'type', json_build_object(
-                                'id',tags_type.id,
-                                'name',tags_type.name
-                            ),
-                            'breed', json_build_object(
-                                'id',tags_breed.id,
-                                'name',tags_breed.name
-                            ),
-                            'avatars',json_build_object(
-                                'small',pet_avatar.small,
-                                'middle',pet_avatar.middle,
-                                'large',pet_avatar.large,
-                                'default_avatar',pet_avatar.default_avatar
-                            )
-                        )
+
+                    COALESCE(
+                        ARRAY_AGG(
+                            CASE WHEN pets.id IS NOT NULL THEN
+                                json_build_object(
+                                    'id', pets.id,
+                                    'name', pets.name,
+                                    'type', json_build_object(
+                                        'id', tags_type.id,
+                                        'name', tags_type.name
+                                    ),
+                                    'breed', json_build_object(
+                                        'id', tags_breed.id,
+                                        'name', tags_breed.name
+                                    ),
+                                    'avatars', json_build_object(
+                                        'small', pet_avatar.small,
+                                        'middle', pet_avatar.middle,
+                                        'large', pet_avatar.large,
+                                        'default_avatar', pet_avatar.default_avatar
+                                    )
+                                )
+                            END
+                        ) FILTER (WHERE pets.id IS NOT NULL),
+                        '{}'
                     ) as pets,
                     (SELECT COUNT(*) FROM user_user_followers WHERE user_uid = $1) as followers_count,
                     (SELECT COUNT(*) FROM user_user_followers WHERE follower_uid = $1) + (SELECT COUNT(*) FROM user_pet_followers WHERE follower_uid = $1) as following_count 
