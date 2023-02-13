@@ -81,7 +81,7 @@ export class AuthService {
     async login({ password, email }: LoginDto): Promise<any> {
         try {
             const candidate = (await this.database.query(`
-                SELECT * FROM users
+                SELECT "isActivate", password, uid, email FROM users
                 WHERE email = $1
                 LIMIT 1
             `, [email])).rows[0]
@@ -108,10 +108,8 @@ export class AuthService {
 
             const jwtToken = sign({ uid: candidate.uid, email: candidate.email }, JWT_SECRET)
 
-            delete candidate.password
-
             return {
-                user: candidate,
+                user: await this.userService.getUserWithAvatars(candidate.uid),
                 jwtToken
             }
 

@@ -81,17 +81,7 @@ export class UserService {
 
     async getUserByUid(uid: string) {
         try {
-            const User = (await this.database.query(`
-                SELECT * FROM users
-                WHERE uid = $1
-                LIMIT 1
-            `, [uid])).rows[0];
-
-            if (User) {
-                delete User.password;
-            }
-
-            return User
+            return await this.getUserWithAvatars(uid)
         } catch (err) {
             const errObj: IResponseFail = {
                 status: false,
