@@ -66,6 +66,37 @@ export class PetService {
         }
     }
 
+    async getPetWithAvatars(id: number) {
+        return (await this.database.query(`
+            SELECT 
+                pets.id,
+                pets.name,
+                bio,
+                date_of_birthday,
+                user_uid,
+                json_build_object(
+                    'small',pet_avatar.small,
+                    'middle',pet_avatar.middle,
+                    'large',pet_avatar.large,
+                    'default_avatar',pet_avatar.default_avatar
+                ) AS avatars,
+                json_build_object(
+                    'id',tags_type.id,
+                    'name',tags_type.name
+                ) AS type,
+                json_build_object(
+                    'id',tags_breed.id,
+                    'name',tags_breed.name
+                ) AS breed
+            FROM pets
+            LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
+            INNER JOIN tags tags_type ON pets.type = tags_type.id
+            LEFT JOIN tags tags_breed ON pets.breed = tags_breed.id
+            WHERE pets.id = $1
+            LIMIT 1
+        `, [id])).rows[0]
+    }
+
     async create({ avatar,...dto}: CreateAndUpdatePetDto) {
         const client = await this.database.connect()
         try {
@@ -102,7 +133,7 @@ export class PetService {
 
             await client.query('COMMIT')
 
-            return Pet
+            return await this.getPetWithAvatars(Pet.id)
         } catch(err) {
             await client.query('ROLLBACK')
             const errObj: IResponseFail = {

@@ -101,6 +101,30 @@ export class UserService {
         }
     }
 
+    async getUserWithAvatars(uid: string) {
+        return (await this.database.query(`
+            SELECT 
+                uid,  
+                name,
+                nickname,
+                bio,
+                country,
+                city,
+                email,
+                "isActivate",
+                json_build_object(
+                    'small',user_avatar.small,
+                    'middle',user_avatar.middle,
+                    'large',user_avatar.large,
+                    'default_avatar',user_avatar.default_avatar
+                ) as avatars
+            FROM users
+            LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
+            WHERE users.uid = $1
+            LIMIT 1
+        `, [uid])).rows[0]
+    }
+
     async getUserByEmail(email: string): Promise<IUser> {
         try {
             const User = (await this.database.query(`
@@ -267,20 +291,16 @@ export class UserService {
                 query = query.slice(0, -2)
             }
 
-            const User = (await client.query(`
+            await client.query(`
                 UPDATE users
                 SET ${query}
                 WHERE uid = $1
                 RETURNING *
-            `, [uid, ...values])).rows[0]
+            `, [uid, ...values])
 
             await client.query('COMMIT')
 
-            if (User) {
-                delete User.password;
-            }
-
-            return User
+            return await this.getUserWithAvatars(uid)
         } catch (err) {
             await client.query('ROLLBACK')
             const errObj: IResponseFail = {
