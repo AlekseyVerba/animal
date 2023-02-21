@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors, UsePipes } from "@nestjs/common";
+import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors, UsePipes, Delete, Param } from "@nestjs/common";
 import { PetService } from './pet.service';
 import { CreateAndUpdatePetDto } from './dto/createPet.dto';
 import { fileFilter } from "../file/file.filter";
@@ -8,6 +8,7 @@ import { AuthGuard } from "src/guards/auth.guard";
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CreatePetApiBody } from './configs/create-pet.config';
+import { DeletePetDto } from './dto/deletePet.dto';
 
 @ApiTags('Pet')
 @UsePipes(new ValidationPipe())
@@ -37,6 +38,21 @@ export class PetController {
         return {
             status: true,
             data
+        }
+    }
+
+    @ApiOperation({ summary: 'Delete a pet' })
+    @UseGuards(AuthGuard)
+    @Delete(':pet_id')
+    async delete(
+        @Param() dto: DeletePetDto,
+        @UserProperty('uid') uid: string,
+    ) {
+        dto.user_uid = uid
+        
+        await this.petService.delete(dto)
+        return {
+            status: true
         }
     }
 }

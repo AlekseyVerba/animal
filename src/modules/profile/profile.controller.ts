@@ -100,9 +100,10 @@ export class ProfileController {
     @ApiOperation({ summary: 'Get profile pet' })
     @Get('pet/:pet_id')
     async getProfilePet(
-        @Param() dto: GetProfilePetDto
+        @Param() dto: GetProfilePetDto,
+        @UserProperty('uid') current_uid: string,
     ) {
-        const data = await this.profileService.getProfilePet(dto.pet_id)
+        const data = await this.profileService.getProfilePet(dto.pet_id, current_uid)
 
         return {
             status: true,
@@ -113,9 +114,10 @@ export class ProfileController {
     @ApiOperation({ summary: 'Get profile user' })
     @Get('user/:user_uid')
     async getProfileUser(
-        @Param() dto: GetProfileUserDto
+        @Param() dto: GetProfileUserDto,
+        @UserProperty('uid') current_uid: string,
     ) {
-        const data = await this.profileService.getProfileUser(dto.user_uid)
+        const data = await this.profileService.getProfileUser(dto.user_uid, current_uid)
 
         return {
             status: true,

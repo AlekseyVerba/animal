@@ -1,10 +1,11 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, HttpException, Inject, Injectable } from "@nestjs/common";
 import imageSize from "image-size";
 import { Pool, PoolClient } from "pg";
 import { DATABASE_POOL } from "src/constants/database.constants";
 import { IResponseFail } from "src/types/response/index.interface";
 import { FileService } from "../file/file.service";
 import { CreateAndUpdatePetDto } from './dto/createPet.dto';
+import { DeletePetDto } from './dto/deletePet.dto'
 
 @Injectable()
 export class PetService {
@@ -12,7 +13,7 @@ export class PetService {
         @Inject(DATABASE_POOL)
         private readonly database: Pool,
         private readonly fileService: FileService,
-    ) {}
+    ) { }
 
     async updatePetAvatar(id: number, avatar: Express.Multer.File, client?: PoolClient) {
         try {
@@ -97,7 +98,7 @@ export class PetService {
         `, [id])).rows[0]
     }
 
-    async create({ avatar,...dto}: CreateAndUpdatePetDto) {
+    async create({ avatar, ...dto }: CreateAndUpdatePetDto) {
         const client = await this.database.connect()
         try {
 
@@ -134,7 +135,7 @@ export class PetService {
             await client.query('COMMIT')
 
             return await this.getPetWithAvatars(Pet.id)
-        } catch(err) {
+        } catch (err) {
             await client.query('ROLLBACK')
             const errObj: IResponseFail = {
                 status: false,
@@ -146,6 +147,37 @@ export class PetService {
         }
     }
 
+    async delete({ pet_id, user_uid }: DeletePetDto) {
+        try {
+            const pet = (await this.database.query(`
+            SELECT user_uid 
+            FROM pets
+            WHERE id = $1
+            LIMIT 1 
+        `, [pet_id])).rows[0]
+
+            if (pet.user_uid != user_uid) {
+                const objError: IResponseFail = {
+                    status: false,
+                    message: 'You are not master this pet'
+                }
+
+                throw new ForbiddenException(objError)
+            }
+
+            await this.database.query(`
+                DELETE FROM pets
+                WHERE id = $1
+            `, [pet_id])
+        } catch (err) {
+            const errObj: IResponseFail = {
+                status: false,
+                message: err.message,
+            }
+            throw new HttpException(errObj, err.status || 500)
+        }
+    }
+
     async getPetById(id: number) {
         try {
             return (await this.database.query(`
@@ -153,7 +185,7 @@ export class PetService {
                 WHERE id = $1
                 LIMIT 1
             `, [id])).rows[0]
-        } catch(err) {
+        } catch (err) {
             const errObj: IResponseFail = {
                 status: false,
                 message: err.message,

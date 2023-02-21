@@ -140,7 +140,7 @@ export class ProfileService {
         return profile_type === 'user' ? this.tableUserUserFollowers : this.tableUserPetFollowers
     }
 
-    async getProfilePet(pet_id: number) {
+    async getProfilePet(pet_id: number, current_uid: string | undefined = undefined) {
         try {
             const result = (await this.database.query(`
             SELECT pets.id, pets.name, pets.bio, pets.date_of_birthday,
@@ -183,6 +183,20 @@ export class ProfileService {
                 tags_type.id, tags_breed.id
         `, [pet_id])).rows[0]
 
+        result.isSubscribed = false
+
+        if (current_uid) {
+            const isSubscribed = (await this.database.query(`
+                SELECT follower_uid FROM user_pet_followers
+                WHERE pet_id = $1 AND follower_uid = $2
+                LIMIT 1
+            `, [pet_id, current_uid])).rows[0]
+
+            if (isSubscribed) {
+                result.isSubscribed = true
+            }            
+        }
+
         return result
         } catch (err) {
             const errObj: IResponseFail = {
@@ -195,7 +209,7 @@ export class ProfileService {
 
     }
 
-    async getProfileUser(user_uid: string) {
+    async getProfileUser(user_uid: string, current_uid: string | undefined = undefined) {
         try {
             const result = (await this.database.query(`
                 SELECT 
@@ -244,6 +258,20 @@ export class ProfileService {
                 WHERE users.uid = $1
                 GROUP BY users.uid, user_avatar.small, user_avatar.middle, user_avatar.large, user_avatar.default_avatar
             `, [user_uid])).rows[0]
+
+            result.isSubscribed = false
+
+            if (current_uid) {
+                const isSubscribed = (await this.database.query(`
+                    SELECT user_uid FROM user_user_followers
+                    WHERE user_uid = $1 AND follower_uid = $2
+                    LIMIT 1
+                `, [user_uid, current_uid])).rows[0]
+    
+                if (isSubscribed) {
+                    result.isSubscribed = true
+                }            
+            }
 
             return result
         } catch(err) {
