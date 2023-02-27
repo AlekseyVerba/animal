@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpException, HttpStatus, Param, ParseFilePipe, ParseFilePipeBuilder, Post, Put, UploadedFile, UseGuards, UseInterceptors, UsePipes } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseFilePipe, ParseFilePipeBuilder, Post, Put, UploadedFile, UseGuards, UseInterceptors, UsePipes } from "@nestjs/common";
 import { IResponseSuccess } from "src/types/response/index.interface";
 import { UserService } from './user.service';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -26,6 +26,12 @@ export class UserController {
     constructor(
         private readonly userService: UserService,
     ) { }
+
+    @ApiOperation({ summary: 'Get all users. It is a temporary method!' })
+    @Get('all')
+    async getAllUsers() {
+        return await this.userService.getAllUsers()
+    }
 
     @ApiOperation({ summary: 'Check exist user by email' })
     @ApiBody(CheckUserByEmailApiBody)

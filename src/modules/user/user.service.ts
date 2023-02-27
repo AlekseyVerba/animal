@@ -23,6 +23,20 @@ export class UserService {
         private readonly fileService: FileService,
     ) { }
 
+    async getAllUsers() {
+        try {
+            return (await this.database.query(`
+                SELECT uid, name, nickname, email, "isActivate" FROM users
+            `)).rows
+        } catch(err) {
+            const errObj: IResponseFail = {
+                status: false,
+                message: err.message,
+            }
+            throw new HttpException(errObj, err.status || 500)
+        }
+    }
+
     async isUserExistByEmail(email: string): Promise<boolean> {
         try {
 
