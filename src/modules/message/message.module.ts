@@ -10,7 +10,7 @@ import { MessageService } from './message.service';
               secure: false,
               auth: {
                 user: 'verba.20@bk.ru',
-                pass: 'ibNZeQLiXe4ZrSwz6HuA',
+                pass: 'V8VjhpvtimbyCBb7ehet',
               },
             },
             defaults: {
