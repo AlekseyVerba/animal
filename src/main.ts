@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
+import { HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,17 +17,26 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         name: 'firebase',
         description: 'Enter JWT token',
-        in: 'header'
+        in: 'header',
       },
-      'firebase-auth'
+      'firebase-auth',
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('swagger', app, document);
-  
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      whitelist: true,
+    }),
+  );
 
   app.enableCors();
   await app.listen(process.env.PORT || 3001);

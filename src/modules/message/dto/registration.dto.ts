@@ -1,4 +1,4 @@
 export class RegistrationDto {
-    code: string;
-    email: string;
+  code: string;
+  email: string;
 }

@@ -1,4 +1,4 @@
 export class RememberPasswordDto {
-    code: string 
-    email: string
+  code: string;
+  email: string;
 }

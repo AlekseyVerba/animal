@@ -1,10 +1,10 @@
-import { forwardRef, Module } from "@nestjs/common";
+import { forwardRef, Module } from '@nestjs/common';
 
 //MODULES
 import { TokenModule } from '../token/token.module';
 import { UserModule } from '../user/user.module';
 import { MessageModule } from '../message/message.module';
-import { AppModule } from "src/app.module";
+import { AppModule } from 'src/app.module';
 
 //SERVICES
 import { AuthService } from './auth.service';
@@ -18,22 +18,21 @@ import { IsUserExistConstraint } from 'src/validations/userExists.validation';
 import { IsUserExistByEmailConstraint } from 'src/validations/userExistByEmail.validation';
 import { IsTokenExistsAndActiveConstraint } from 'src/validations/tokenExistsAndActive.validation';
 
-
 @Module({
-    imports: [ 
-        UserModule, 
-        MessageModule, 
-        TokenModule,
-        forwardRef(() => AppModule),
-    ],
+  imports: [
+    UserModule,
+    MessageModule,
+    TokenModule,
+    forwardRef(() => AppModule),
+  ],
 
-    controllers: [AuthController],
-    providers: [ 
-        AuthService, 
-        IsUserNotExistByEmailConstraint, 
-        IsUserExistConstraint, 
-        IsUserExistByEmailConstraint,
-        IsTokenExistsAndActiveConstraint
-    ]
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    IsUserNotExistByEmailConstraint,
+    IsUserExistConstraint,
+    IsUserExistByEmailConstraint,
+    IsTokenExistsAndActiveConstraint,
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}

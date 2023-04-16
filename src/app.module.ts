@@ -19,6 +19,9 @@ import { TagModule } from './modules/tag/tag.module';
 import { FileModule } from './modules/file/file.module';
 import { PetModule } from './modules/pet/pet.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { PostModule } from './modules/post/post.module';
+import { CommentModule } from './modules/comment/comment.module';
+import { LikeModule } from './modules/like/like.module';
 
 import { DATABASE_POOL } from './constants/database.constants';
 
@@ -29,7 +32,7 @@ import { DATABASE_POOL } from './constants/database.constants';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '..', '.env')
+      envFilePath: join(__dirname, '..', '.env'),
     }),
     UserModule,
     AuthModule,
@@ -38,7 +41,10 @@ import { DATABASE_POOL } from './constants/database.constants';
     TagModule,
     FileModule,
     PetModule,
-    ProfileModule
+    ProfileModule,
+    PostModule,
+    CommentModule,
+    LikeModule,
   ],
   controllers: [AppController],
   providers: [
@@ -50,9 +56,9 @@ import { DATABASE_POOL } from './constants/database.constants';
         host: process.env.POSTGRES_HOST,
         database: process.env.POSTGRES_DB,
         password: process.env.POSTGRES_PASSWORD,
-        port: Number(process.env.POSTGRES_PORT)
-      })
-    }
+        port: Number(process.env.POSTGRES_PORT),
+      }),
+    },
   ],
   exports: [
     {
@@ -62,13 +68,13 @@ import { DATABASE_POOL } from './constants/database.constants';
         host: process.env.POSTGRES_HOST,
         database: process.env.POSTGRES_DB,
         password: process.env.POSTGRES_PASSWORD,
-        port: Number(process.env.POSTGRES_PORT)
-      })
-  }
-  ]
+        port: Number(process.env.POSTGRES_PORT),
+      }),
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(GetUser).forRoutes("*")
+    consumer.apply(GetUser).forRoutes('*');
   }
 }

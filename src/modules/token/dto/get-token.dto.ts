@@ -1,4 +1,4 @@
 export class GetTokenDto {
-    userUid: string;
-    token: string;
+  userUid: string;
+  token: string;
 }

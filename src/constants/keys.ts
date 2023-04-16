@@ -1,1 +1,1 @@
-export const JWT_SECRET = 'gdfkglmdf kgdfkg'
+export const JWT_SECRET = 'gdfkglmdf kgdfkg';
