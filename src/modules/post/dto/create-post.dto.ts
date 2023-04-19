@@ -1,4 +1,4 @@
-import { IsObject, IsString, Max, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsObject, IsString, Max, MaxLength } from 'class-validator';
 import { IsPetExist } from 'src/validations/petExists.validation';
 
 export class CreatePostDto {
@@ -6,6 +6,7 @@ export class CreatePostDto {
   @MaxLength(100, { message: "Field '$property' length must be less then 100" })
   title: string;
 
+  @IsNotEmpty()
   body: {
     [key: `text${number}`]: string;
     [key: `textImage${number}`]: string;
