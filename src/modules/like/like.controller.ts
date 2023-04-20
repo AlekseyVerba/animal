@@ -47,7 +47,11 @@ export class LikeController {
     @Body() dto: AddLikeDto,
   ) {
     dto.current_uid = current_uid;
-    return await this.likeService.addLike(dto);
+    return {
+      status: true,
+      data: await this.likeService.addLike(dto),
+      message: 'Лайк добавлен',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -59,7 +63,11 @@ export class LikeController {
     @Body() dto: DeleteLikeDto,
   ) {
     dto.current_uid = current_uid;
-    return await this.likeService.deleteLike(dto);
+
+    return {
+      status: true,
+      message: 'Лайк удалён',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -72,7 +80,11 @@ export class LikeController {
   ) {
     dto.current_uid = current_uid;
 
-    return await this.likeService.updateLike(dto);
+    return {
+      status: true,
+      data: await this.likeService.updateLike(dto),
+      message: 'Лайк обновлён',
+    };
   }
 
   @ApiOperation({ summary: 'Get like from post' })
@@ -102,12 +114,15 @@ export class LikeController {
     @Param() { postId }: PostIdParam,
     @Query() { limit, offset, sort }: GetLikesQuery,
   ) {
-    return await this.likeService.getLikes({
-      postId,
-      limit,
-      offset,
-      sort,
-    });
+    return {
+      status: true,
+      data: await this.likeService.getLikes({
+        postId,
+        limit,
+        offset,
+        sort,
+      }),
+    };
   }
 
   @ApiOperation({ summary: 'Get like from comment' })
@@ -137,11 +152,14 @@ export class LikeController {
     @Param() { commentId }: CommentIdParam,
     @Query() { limit, offset, sort }: GetLikesQuery,
   ) {
-    return await this.likeService.getLikes({
-      commentId,
-      limit,
-      offset,
-      sort,
-    });
+    return {
+      status: true,
+      data: await this.likeService.getLikes({
+        commentId,
+        limit,
+        offset,
+        sort,
+      }),
+    };
   }
 }

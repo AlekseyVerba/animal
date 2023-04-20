@@ -17,6 +17,7 @@ import { IsAuthorDto } from './dto/is-author.dto';
 
 //SERVICES
 import { UserService } from '../user/user.service';
+import { IResponseFail } from 'src/types/response/index.interface';
 
 @Injectable()
 export class CommentService {
@@ -28,70 +29,106 @@ export class CommentService {
   ) {}
 
   async addCommentToProject({ value, current_uid, postId }: AddCommentDto) {
-    const comment = (
-      await this.database.query(
-        `
-            INSERT INTO comments(value, user_uid, post_id)
-            VALUES($1, $2, $3)
-            RETURNING *;
-        `,
-        [value, current_uid, postId],
-      )
-    ).rows[0];
+    try {
+      const comment = (
+        await this.database.query(
+          `
+              INSERT INTO comments(value, user_uid, post_id)
+              VALUES($1, $2, $3)
+              RETURNING *;
+          `,
+          [value, current_uid, postId],
+        )
+      ).rows[0];
 
-    return comment;
+      return comment;
+    } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
+    }
   }
 
   async updateComment({ commentId, current_uid, value }: UpdateCommentDto) {
-    await this.isAuthorComment({ commentId, current_uid });
+    try {
+      await this.isAuthorComment({ commentId, current_uid });
 
-    const comment = (
-      await this.database.query(
-        `
-            UPDATE comments
-            SET value = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING *
-        `,
-        [value, commentId],
-      )
-    ).rows[0];
+      const comment = (
+        await this.database.query(
+          `
+              UPDATE comments
+              SET value = $1, updated_at = NOW()
+              WHERE id = $2
+              RETURNING *
+          `,
+          [value, commentId],
+        )
+      ).rows[0];
 
-    return comment;
+      return comment;
+    } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
+    }
   }
 
   async isAuthorComment({ commentId, current_uid }: IsAuthorDto) {
-    const { user_uid } = (
-      await this.database.query(
-        `
-            SELECT user_uid 
-            FROM comments
-            WHERE id = $1
-            LIMIT 1
-        `,
-        [commentId],
-      )
-    ).rows[0];
+    try {
+      const { user_uid } = (
+        await this.database.query(
+          `
+              SELECT user_uid 
+              FROM comments
+              WHERE id = $1
+              LIMIT 1
+          `,
+          [commentId],
+        )
+      ).rows[0];
 
-    if (user_uid !== current_uid) {
-      throw new HttpException('У вас нету прав', HttpStatus.FORBIDDEN);
+      if (user_uid !== current_uid) {
+        const errObj: IResponseFail = {
+          status: false,
+          message: 'У вас нету прав',
+        };
+        throw new HttpException(errObj, HttpStatus.FORBIDDEN);
+      }
+
+      return true;
+    } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
     }
-
-    return true;
   }
 
   async deleteComment({ commentId, current_uid }) {
-    await this.isAuthorComment({ commentId, current_uid });
+    try {
+      await this.isAuthorComment({ commentId, current_uid });
 
-    await this.database.query(
-      `
-            DELETE FROM comments
-            WHERE id = $1
-        `,
-      [commentId],
-    );
+      await this.database.query(
+        `
+              DELETE FROM comments
+              WHERE id = $1
+          `,
+        [commentId],
+      );
 
-    return true;
+      return true;
+    } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
+    }
   }
 
   async getComments({
@@ -105,58 +142,74 @@ export class CommentService {
     limit?: number;
     offset?: number;
   }) {
-    return (
-      await this.database.query(
-        `
-            SELECT comments.id, value, post_id, created_at, updated_at, 
-            json_build_object(
-                'uid', users.uid,
-                'name', users.name,
-                'avatars', json_build_object(
-                    'small', user_avatar.small,
-                    'middle', user_avatar.middle,
-                    'large', user_avatar.large,
-                    'default_avatar', user_avatar.default_avatar
-                )
-            ) as user,
-                (SELECT 
-                json_build_object(
-                    'value', likes.value
-                )
-                FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2) as isLiked,
-                ARRAY(
-                    SELECT json_build_object(
-                        'count', count(*),
-                        'value', value
-                    )
-                    FROM likes
-                    WHERE likes.comment_id = comments.id
-                    GROUP BY value, post_id
-                ) as likes
-            FROM comments
-            INNER JOIN users ON comments.user_uid = users.uid
-            LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
-            WHERE comments.post_id = $1
-            ORDER BY comments.created_at DESC
-            LIMIT $3
-            OFFSET $4
-        `,
-        [postId, current_uid, limit, offset],
-      )
-    ).rows;
+    try {
+      return (
+        await this.database.query(
+          `
+              SELECT comments.id, value, post_id, created_at, updated_at, 
+              json_build_object(
+                  'uid', users.uid,
+                  'name', users.name,
+                  'avatars', json_build_object(
+                      'small', user_avatar.small,
+                      'middle', user_avatar.middle,
+                      'large', user_avatar.large,
+                      'default_avatar', user_avatar.default_avatar
+                  )
+              ) as user,
+                  (SELECT 
+                  json_build_object(
+                      'value', likes.value
+                  )
+                  FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2) as isLiked,
+                  ARRAY(
+                      SELECT json_build_object(
+                          'count', count(*),
+                          'value', value
+                      )
+                      FROM likes
+                      WHERE likes.comment_id = comments.id
+                      GROUP BY value, post_id
+                  ) as likes
+              FROM comments
+              INNER JOIN users ON comments.user_uid = users.uid
+              LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
+              WHERE comments.post_id = $1
+              ORDER BY comments.created_at DESC
+              LIMIT $3
+              OFFSET $4
+          `,
+          [postId, current_uid, limit, offset],
+        )
+      ).rows;
+    } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
+    }
   }
 
   async getCommentId(id: number) {
-    return (
-      await this.database.query(
-        `
-            SELECT id FROM
-            comments
-            WHERE comments.id = $1
-            LIMIT 1
-        `,
-        [id],
-      )
-    ).rows[0];
+    try {
+      return (
+        await this.database.query(
+          `
+              SELECT id FROM
+              comments
+              WHERE comments.id = $1
+              LIMIT 1
+          `,
+          [id],
+        )
+      ).rows[0];
+    } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
+    }
   }
 }

@@ -47,7 +47,11 @@ export class CommentController {
     dto.postId = postId;
     dto.current_uid = current_uid;
 
-    return await this.commentService.addCommentToProject(dto);
+    return {
+      status: true,
+      data: await this.commentService.addCommentToProject(dto),
+      message: 'Комментарий добавлен',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -62,7 +66,11 @@ export class CommentController {
     dto.commentId = commentId;
     dto.current_uid = current_uid;
 
-    return await this.commentService.updateComment(dto);
+    return {
+      status: true,
+      data: await this.commentService.updateComment(dto),
+      message: 'Комментарий обновлен',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -72,7 +80,12 @@ export class CommentController {
     @Param() { commentId }: CommentIdParam,
     @UserProperty('uid') current_uid: string,
   ) {
-    return await this.commentService.deleteComment({ commentId, current_uid });
+    await this.commentService.deleteComment({ commentId, current_uid });
+
+    return {
+      status: true,
+      message: 'Комментарий удалён',
+    };
   }
 
   @ApiQuery({
@@ -95,11 +108,14 @@ export class CommentController {
     @Query() { limit, offset }: GetCommentsQuery,
     @UserProperty('uid') current_uid?: string,
   ) {
-    return await this.commentService.getComments({
-      postId,
-      current_uid,
-      limit,
-      offset,
-    });
+    return {
+      status: true,
+      data: await this.commentService.getComments({
+        postId,
+        current_uid,
+        limit,
+        offset,
+      }),
+    };
   }
 }

@@ -49,7 +49,11 @@ export class PostController {
   ) {
     dto.current_uid = current_uid;
 
-    return await this.postService.createPost(files, dto);
+    return {
+      status: true,
+      data: await this.postService.createPost(files, dto),
+      message: 'Пост создан',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -65,7 +69,12 @@ export class PostController {
   ) {
     dto.id = postId;
     dto.current_uid = current_uid;
-    return await this.postService.updatePost(files, dto);
+
+    return {
+      status: true,
+      data: await this.postService.updatePost(files, dto),
+      message: 'Пост обновлён',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -75,8 +84,12 @@ export class PostController {
     @Param() { postId }: PostIdParam,
     @UserProperty('uid') current_uid: string,
   ) {
-    console.log(postId);
-    return await this.postService.deletePost({ postId, current_uid });
+    await this.postService.deletePost({ postId, current_uid });
+
+    return {
+      status: true,
+      message: 'Пост удалён',
+    };
   }
 
   @ApiQuery({
@@ -119,7 +132,10 @@ export class PostController {
   ) {
     dto.current_uid = current_uid;
 
-    return await this.postService.getPosts(dto);
+    return {
+      status: true,
+      data: await this.postService.getPosts(dto),
+    };
   }
 
   @Get(':postId')
@@ -128,6 +144,9 @@ export class PostController {
     @Param() { postId }: PostIdParam,
     @UserProperty('uid') current_uid: string,
   ) {
-    return await this.postService.getPost({ postId, current_uid });
+    return {
+      status: true,
+      data: await this.postService.getPost({ postId, current_uid }),
+    };
   }
 }

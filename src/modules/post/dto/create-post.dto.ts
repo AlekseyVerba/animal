@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsObject, IsString, Max, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsObject,
+  IsString,
+  Max,
+  MaxLength,
+} from 'class-validator';
 import { IsPetExist } from 'src/validations/petExists.validation';
 
 export class CreatePostDto {
