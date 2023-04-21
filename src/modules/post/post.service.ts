@@ -58,7 +58,7 @@ export class PostService {
         files.forEach((file) => {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
-                `${this.#NAME_PROPERTY_IMAGE}${file.fieldname.match(/\d+/)[0]}`
+                `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
               ] = this.fileService.createFile(file, 'post').fullPath)
             : null;
         });
@@ -175,7 +175,7 @@ export class PostService {
         files.forEach((file) => {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
-                `${this.#NAME_PROPERTY_IMAGE}${file.fieldname.match(/\d+/)[0]}`
+                `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
               ] = this.fileService.createFile(file, 'post').fullPath)
             : null;
         });
