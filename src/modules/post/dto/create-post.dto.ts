@@ -12,10 +12,10 @@ export class CreatePostDto {
   @MaxLength(100, { message: "Field '$property' length must be less then 100" })
   title: string;
 
-  @IsNotEmpty()
+  @IsObject()
   body: {
-    [key: `text${number}`]: string;
-    [key: `textImage${number}`]: string;
+    [key: `${number}text`]: string;
+    [key: `${number}textImage`]: string;
   };
 
   @IsPetExist({ message: "Pet with id '$value' does not exist!" })

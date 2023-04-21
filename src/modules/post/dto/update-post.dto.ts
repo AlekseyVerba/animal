@@ -16,10 +16,10 @@ export class UpdatePostDto {
   @MaxLength(100, { message: "Field '$property' length must be less then 100" })
   title: string;
 
-  @IsNotEmpty()
+  @IsObject()
   body: {
-    [key: `text${number}`]: string;
-    [key: `textImage${number}`]: string;
+    [key: `${number}text`]: string;
+    [key: `${number}textImage`]: string;
   };
 
   current_uid: string;
