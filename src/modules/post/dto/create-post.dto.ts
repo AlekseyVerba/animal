@@ -25,4 +25,5 @@ export class CreatePostDto {
   tags?: string[];
 
   current_uid: string;
+  
 }
