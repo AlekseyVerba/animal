@@ -59,7 +59,7 @@ export class PostService {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
                 `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
-              ] = this.fileService.createFile(file, 'post').fullPath)
+              ] = this.fileService.createFile(file, 'project').fullPath)
             : null;
         });
       }
@@ -176,7 +176,7 @@ export class PostService {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
                 `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
-              ] = this.fileService.createFile(file, 'post').fullPath)
+              ] = this.fileService.createFile(file, 'project').fullPath)
             : null;
         });
       }
