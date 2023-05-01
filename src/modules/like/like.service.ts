@@ -196,6 +196,7 @@ export class LikeService {
                   json_build_object(
                       'uid', users.uid,
                       'name', users.name,
+                      'nickname', users.nickname,
                       'avatars', json_build_object(
                           'small', user_avatar.small,
                           'middle', user_avatar.middle,

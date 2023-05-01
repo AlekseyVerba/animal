@@ -409,13 +409,16 @@ export class PostService {
                       SELECT
                           json_build_object(
                               'id', comments.id,
-                              'uid', users.uid,
-                              'name', users.name,
-                              'avatars', json_build_object(
-                                  'small', user_avatar.small,
-                                  'middle', user_avatar.middle,
-                                  'large', user_avatar.large,
-                                  'default_avatar', user_avatar.default_avatar
+                              'user', json_build_object(
+                                'uid', users.uid,
+                                'nickname', users.nickname,
+                                'name', users.name,
+                                'avatars', json_build_object(
+                                    'small', user_avatar.small,
+                                    'middle', user_avatar.middle,
+                                    'large', user_avatar.large,
+                                    'default_avatar', user_avatar.default_avatar
+                                )
                               ),
                               'value', comments.value,
                               'likes', ARRAY(

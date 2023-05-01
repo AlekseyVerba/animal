@@ -41,7 +41,7 @@ export class CommentService {
         )
       ).rows[0];
 
-      return comment;
+      return await this.getCommenWithData(comment.id, current_uid);
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
@@ -49,6 +49,46 @@ export class CommentService {
       };
       throw new HttpException(errObj, err.status || 500);
     }
+  }
+
+  async getCommenWithData(id: number, current_uid?: string) {
+    return (
+      await this.database.query(
+        `
+            SELECT comments.id, value, post_id, created_at, updated_at, 
+            json_build_object(
+                'uid', users.uid,
+                'name', users.name,
+                'nickname', users.nickname,
+                'avatars', json_build_object(
+                    'small', user_avatar.small,
+                    'middle', user_avatar.middle,
+                    'large', user_avatar.large,
+                    'default_avatar', user_avatar.default_avatar
+                )
+            ) as user,
+                (SELECT 
+                json_build_object(
+                    'value', likes.value
+                )
+                FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2) as isLiked,
+                ARRAY(
+                    SELECT json_build_object(
+                        'count', count(*),
+                        'value', value
+                    )
+                    FROM likes
+                    WHERE likes.comment_id = comments.id
+                    GROUP BY value, post_id
+                ) as likes
+            FROM comments
+            INNER JOIN users ON comments.user_uid = users.uid
+            LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
+            WHERE comments.id = $1
+        `,
+        [id, current_uid],
+      )
+    ).rows[0];
   }
 
   async updateComment({ commentId, current_uid, value }: UpdateCommentDto) {
@@ -67,7 +107,7 @@ export class CommentService {
         )
       ).rows[0];
 
-      return comment;
+      return await this.getCommenWithData(comment.id, current_uid)
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
@@ -150,6 +190,7 @@ export class CommentService {
               json_build_object(
                   'uid', users.uid,
                   'name', users.name,
+                  'nickname', users.nickname,
                   'avatars', json_build_object(
                       'small', user_avatar.small,
                       'middle', user_avatar.middle,
