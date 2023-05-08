@@ -420,6 +420,9 @@ export class PostService {
                                     'default_avatar', user_avatar.default_avatar
                                 )
                               ),
+                              'post_id', comments.post_id,
+                              'created_at', comments.created_at,
+                              'updated_at',comments.updated_at,
                               'value', comments.value,
                               'likes', ARRAY(
                                   SELECT json_build_object(
@@ -436,12 +439,13 @@ export class PostService {
                                       'value', likes.value
                                   )
                                   FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2
-                              )
+                              ),
+                              'subComments',(SELECT COUNT(*)::integer FROM comments c WHERE c.parent_id = comments.id)
                           )
                       FROM comments
                       INNER JOIN users ON comments.user_uid = users.uid
                       LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
-                      WHERE comments.post_id = $1
+                      WHERE comments.post_id = $1 AND comments.parent_id IS NULL
                       ORDER BY comments.created_at DESC
                       LIMIT 15
                   ) ,

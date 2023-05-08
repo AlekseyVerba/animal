@@ -19,6 +19,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 //SWAGGER
 import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AddCommentApiBody } from './configs/add-comment.config';
+import { UpdateCommentApiBody } from './configs/update-comment.config';
 
 //DTO
 import { AddCommentDto } from './dto/add-comment.dto';
@@ -56,7 +57,7 @@ export class CommentController {
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Update comment' })
-  @ApiBody(AddCommentApiBody)
+  @ApiBody(UpdateCommentApiBody)
   @Put(':commentId/update')
   async updateComment(
     @Param() { commentId }: CommentIdParam,
@@ -85,6 +86,37 @@ export class CommentController {
     return {
       status: true,
       message: 'Комментарий удалён',
+    };
+  }
+
+  @ApiQuery({
+    name: 'limit',
+    type: 'number',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    type: 'number',
+    required: false,
+  })
+  @ApiOperation({
+    summary: 'Получение подкомментариев.',
+    description: 'Получение комментариев идет с последних записей',
+  })
+  @Get(':commentId/subcomments')
+  async getSubComments(
+    @Param() { commentId }: CommentIdParam,
+    @Query() { limit, offset }: GetCommentsQuery,
+    @UserProperty('uid') current_uid?: string,
+  ) {
+    return {
+      status: true,
+      data: await this.commentService.getSubComments({
+        commentId,
+        current_uid,
+        limit,
+        offset,
+      }),
     };
   }
 

@@ -1,6 +1,6 @@
 import { ApiBodyOptions } from '@nestjs/swagger';
 
-export const AddCommentApiBody: ApiBodyOptions = {
+export const UpdateCommentApiBody: ApiBodyOptions = {
   schema: {
     type: 'object',
     properties: {
@@ -13,12 +13,6 @@ export const AddCommentApiBody: ApiBodyOptions = {
         type: 'string',
         required: ['false'],
         description: 'Для ответа пользователю',
-      },
-      parent_id: {
-        type: 'number',
-        required: ['false'],
-        description:
-          'Для оставления комментария под комментарием. Вложенность может быть только из 1 дерева. Как в инстаграме',
       },
     },
   },

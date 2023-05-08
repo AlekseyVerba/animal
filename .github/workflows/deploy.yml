@@ -26,6 +26,7 @@ jobs:
         script: |
           cd /root/animal
           git pull origin master
+          npx sequelize db:migrate
           npm i
           npm run build
 

@@ -17,6 +17,6 @@ import { IsPostExistConstraint } from '../../validations/postExists.validation';
   imports: [FileModule, forwardRef(() => AppModule)],
   controllers: [PostController],
   providers: [PostService, IsPostExistConstraint],
-  exports: [IsPostExistConstraint],
+  exports: [PostService, IsPostExistConstraint],
 })
 export class PostModule {}
