@@ -2,9 +2,11 @@ import { Module, forwardRef } from '@nestjs/common';
 
 //SERVICES
 import { PostService } from './post.service';
+import { PostFavoriteService } from './post-favorite.service';
 
 //CONTROLLERS
 import { PostController } from './post.controller';
+import { PostFavoriteController } from './post-favorite.controller';
 
 //MODULES
 import { AppModule } from 'src/app.module';
@@ -15,8 +17,8 @@ import { IsPostExistConstraint } from '../../validations/postExists.validation';
 
 @Module({
   imports: [FileModule, forwardRef(() => AppModule)],
-  controllers: [PostController],
-  providers: [PostService, IsPostExistConstraint],
+  controllers: [PostController, PostFavoriteController],
+  providers: [PostService, IsPostExistConstraint, PostFavoriteService],
   exports: [PostService, IsPostExistConstraint],
 })
 export class PostModule {}

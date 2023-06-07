@@ -40,7 +40,7 @@ export class CommentService {
     try {
       if (parent_id) {
         const parentComment = await this.getCommentById(parent_id);
-        
+
         if (parentComment.parent_id) {
           const errObj: IResponseFail = {
             status: false,

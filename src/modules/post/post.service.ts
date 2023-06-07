@@ -309,6 +309,13 @@ export class PostService {
                       )
                       FROM likes WHERE likes.post_id = posts.id AND user_uid = $4
                   ) as isLiked,
+                  (
+                    SELECT 
+                    json_build_object(
+                        'value', true
+                    )
+                    FROM user_post_favorite WHERE user_post_favorite.post_id = posts.id AND user_uid = $4
+                ) as isAddedToFavorite,
                   (SELECT COUNT(*)::integer FROM comments WHERE post_id = posts.id) as countComments,
                   (SELECT COUNT(*)::integer FROM post_views WHERE post_id = posts.id) as countViews,
                   ARRAY(
@@ -479,7 +486,14 @@ export class PostService {
                       'value', likes.value
                   )
                   FROM likes WHERE likes.post_id = posts.id AND user_uid = $2
-              ) as isLiked
+              ) as isLiked,
+              (
+                SELECT 
+                json_build_object(
+                    'value', true
+                )
+                FROM user_post_favorite WHERE user_post_favorite.post_id = posts.id AND user_uid = $2
+            ) as isAddedToFavorite
           FROM posts
           LEFT JOIN post_tag ON post_tag.post_id = posts.id
           LEFT JOIN tags ON tags.id = post_tag.tag_id

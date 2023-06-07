@@ -9,6 +9,9 @@ import { IsPetExist } from 'src/validations/petExists.validation';
 
 export class CreatePostDto {
   @IsString()
+  default_image?: string;
+
+  @IsString()
   @MaxLength(100, { message: "Field '$property' length must be less then 100" })
   title: string;
 

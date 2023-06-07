@@ -11,6 +11,12 @@ export const CreatePostApiBody: ApiBodyOptions = {
             2. Добавить в тело body "textImage[id]"
         `,
     properties: {
+      default_image: {
+        description: '',
+        type: 'string',
+        required: ['false'],
+      },
+
       title: {
         type: 'string',
         maxLength: 100,
