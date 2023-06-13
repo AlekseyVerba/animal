@@ -87,11 +87,18 @@ export class CommentService {
                     'default_avatar', user_avatar.default_avatar
                 )
             ) as user,
-                (SELECT 
-                json_build_object(
-                    'value', likes.value
-                )
-                FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2) as isLiked,
+                ${
+                  current_uid
+                  ?
+                  `
+                  json_build_object(
+                    'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
+                  ) as isLiked,
+                  `
+                  :
+                  ''
+                }
+
                 ARRAY(
                     SELECT json_build_object(
                         'count', count(*),
@@ -138,6 +145,15 @@ export class CommentService {
                                 )
                               ),
                               'value', c.value,
+                              ${
+                                current_uid
+                                ?
+                                `'isLiked',json_build_object(
+                                  'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
+                                ),`
+                                :
+                                ''
+                              }
                               'likes', ARRAY(
                                   SELECT json_build_object(
                                       'count', count(*),
@@ -146,13 +162,6 @@ export class CommentService {
                                   FROM likes
                                   WHERE likes.comment_id = c.id
                                   GROUP BY value, post_id
-                              ),
-                              'isLiked', (
-                                  SELECT 
-                                  json_build_object(
-                                      'value', likes.value
-                                  )
-                                  FROM likes WHERE likes.comment_id = c.id AND user_uid = $2
                               )
                           )
                       FROM comments c
@@ -170,7 +179,7 @@ export class CommentService {
             LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
             WHERE comments.id = $1
         `,
-        [id, current_uid],
+        [id],
       )
     ).rows[0];
   }
@@ -293,11 +302,18 @@ export class CommentService {
                       'default_avatar', user_avatar.default_avatar
                   )
               ) as user,
-                  (SELECT 
-                  json_build_object(
-                      'value', likes.value
-                  )
-                  FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2) as isLiked,
+                  ${
+                    current_uid
+                    ?
+                    `
+                    json_build_object(
+                      'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
+                    ) as isLiked,
+                    `
+                    :
+                    ''
+                  }
+
                   ARRAY(
                       SELECT json_build_object(
                           'count', count(*),
@@ -356,13 +372,16 @@ export class CommentService {
                                     WHERE likes.comment_id = c.id
                                     GROUP BY value, post_id
                                 ),
-                                'isLiked', (
-                                    SELECT 
-                                    json_build_object(
-                                        'value', likes.value
-                                    )
-                                    FROM likes WHERE likes.comment_id = c.id AND user_uid = $2
-                                ),
+                                ${
+                                  current_uid
+                                  ?
+                                  `'isLiked',json_build_object(
+                                    'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
+                                  ),`
+                                  :
+                                  ''
+                                }
+
                                 'replyUser', (
                                   SELECT json_build_object(
                                     'uid', u.uid,
@@ -397,10 +416,10 @@ export class CommentService {
               LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
               WHERE comments.post_id = $1 AND comments.parent_id IS NULL
               ORDER BY comments.created_at DESC
-              LIMIT $3
-              OFFSET $4
+              LIMIT $2
+              OFFSET $3
           `,
-          [postId, current_uid, limit, offset],
+          [postId, limit, offset],
         )
       ).rows;
     } catch (err) {
@@ -483,11 +502,17 @@ export class CommentService {
                       'default_avatar', user_avatar.default_avatar
                   )
               ) as user,
-              (SELECT 
-              json_build_object(
-                  'value', likes.value
-              )
-              FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2) as isLiked,
+              ${
+                current_uid
+                ?
+                `
+                json_build_object(
+                  'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
+                ) as isLiked,
+                `
+                :
+                ''
+              }
               ARRAY(
                   SELECT json_build_object(
                       'count', count(*),
@@ -524,10 +549,10 @@ export class CommentService {
               LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
               WHERE comments.parent_id = $1
               ORDER BY comments.created_at DESC
-              LIMIT $3
-              OFFSET $4
+              LIMIT $2
+              OFFSET $3
           `,
-          [commentId, current_uid, limit, offset],
+          [commentId, limit, offset],
         )
       ).rows;
     } catch (err) {

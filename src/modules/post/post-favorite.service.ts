@@ -136,20 +136,32 @@ export class PostFavoriteService {
                           ) FILTER (WHERE tags.id IS NOT NULL),
                           '{}'
                       ) as tags,
-                      (
-                          SELECT 
-                          json_build_object(
-                              'value', likes.value
-                          )
-                          FROM likes WHERE likes.post_id = posts.id AND user_uid = $3
-                      ) as isLiked,
-                      (
-                        SELECT 
-                        json_build_object(
-                            'value', true
-                        )
-                        FROM user_post_favorite user_favorite WHERE user_favorite.post_id = posts.id AND user_uid = $3
-                    ) as isAddedToFavorite,
+
+                    ${current_uid
+                      ?
+                      `
+                              json_build_object(
+                                'value', (SELECT 
+                                  CASE WHEN EXISTS 
+                                (
+                                  SELECT user_post_favorite.post_id
+                                  FROM user_post_favorite
+                                  WHERE user_post_favorite.post_id = posts.id 
+                                  AND user_uid = '${current_uid}'
+                                )
+                                THEN TRUE
+                                ELSE FALSE
+                              END)
+                              ) as isAddedToFavorite,
+                            json_build_object(
+                              'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
+                            ) as isLiked,
+                        `
+                      :
+                      ``
+                    }
+
+
                       (SELECT COUNT(*)::integer FROM comments WHERE post_id = posts.id) as countComments,
                       (SELECT COUNT(*)::integer FROM post_views WHERE post_id = posts.id) as countViews,
                       ARRAY(
@@ -162,7 +174,7 @@ export class PostFavoriteService {
                           GROUP BY value, post_id
                       ) as likes
                   FROM posts
-                  INNER JOIN user_post_favorite ON posts.id = user_post_favorite.post_id
+                  INNER JOIN user_post_favorite ON posts.id = user_post_favorite.post_id AND user_post_favorite.user_uid = '${current_uid}'
                   INNER JOIN pets ON pets.id = posts.pet_id
                   LEFT JOIN post_tag ON post_tag.post_id = posts.id
                   LEFT JOIN tags ON tags.id = post_tag.tag_id
@@ -172,7 +184,7 @@ export class PostFavoriteService {
                   LIMIT $1
                   OFFSET $2
               `,
-        [limit, offset, current_uid],
+        [limit, offset],
       )
     ).rows;
   }

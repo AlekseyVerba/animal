@@ -63,7 +63,7 @@ export class LikeController {
     @Body() dto: DeleteLikeDto,
   ) {
     dto.current_uid = current_uid;
-
+    await this.likeService.deleteLike(dto)
     return {
       status: true,
       message: 'Лайк удалён',

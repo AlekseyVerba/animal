@@ -58,8 +58,8 @@ export class PostService {
         files.forEach((file) => {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
-                `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
-              ] = this.fileService.createFile(file, 'project').fullPath)
+              `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
+            ] = this.fileService.createFile(file, 'project').fullPath)
             : null;
         });
       }
@@ -119,8 +119,8 @@ export class PostService {
       await this.database.query(`
       INSERT INTO post_tag(post_id, tag_id) VALUES 
       ${values
-        .map((value) => '(' + `${value.post_id}` + ', ' + value.tag_id.id + ')')
-        .join(', ')} 
+          .map((value) => '(' + `${value.post_id}` + ', ' + value.tag_id.id + ')')
+          .join(', ')} 
   `);
     } catch (err) {
       const errObj: IResponseFail = {
@@ -175,8 +175,8 @@ export class PostService {
         files.forEach((file) => {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
-                `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
-              ] = this.fileService.createFile(file, 'project').fullPath)
+              `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
+            ] = this.fileService.createFile(file, 'project').fullPath)
             : null;
         });
       }
@@ -302,20 +302,29 @@ export class PostService {
                       ) FILTER (WHERE tags.id IS NOT NULL),
                       '{}'
                   ) as tags,
-                  (
-                      SELECT 
-                      json_build_object(
-                          'value', likes.value
-                      )
-                      FROM likes WHERE likes.post_id = posts.id AND user_uid = $4
-                  ) as isLiked,
-                  (
-                    SELECT 
+                  ${current_uid
+            ?
+            `
                     json_build_object(
-                        'value', true
-                    )
-                    FROM user_post_favorite WHERE user_post_favorite.post_id = posts.id AND user_uid = $4
-                ) as isAddedToFavorite,
+                      'value', (SELECT 
+                        CASE WHEN EXISTS 
+                      (
+                        SELECT user_post_favorite.post_id
+                        FROM user_post_favorite
+                        WHERE user_post_favorite.post_id = posts.id 
+                        AND user_uid = '${current_uid}'
+                      )
+                      THEN TRUE
+                      ELSE FALSE
+                    END)
+                    ) as isAddedToFavorite,
+                  json_build_object(
+                    'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
+                  ) as isLiked,
+              `
+            :
+            ``
+          }
                   (SELECT COUNT(*)::integer FROM comments WHERE post_id = posts.id) as countComments,
                   (SELECT COUNT(*)::integer FROM post_views WHERE post_id = posts.id) as countViews,
                   ARRAY(
@@ -349,7 +358,7 @@ export class PostService {
               LIMIT $2
               OFFSET $3
           `,
-          [search, limit, offset, current_uid],
+          [search, limit, offset],
         )
       ).rows;
     } catch (err) {
@@ -440,12 +449,8 @@ export class PostService {
                                   WHERE likes.comment_id = comments.id
                                   GROUP BY value, post_id
                               ),
-                              'isLiked', (
-                                  SELECT 
-                                  json_build_object(
-                                      'value', likes.value
-                                  )
-                                  FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2
+                              'isLiked',json_build_object(
+                                'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = $2)
                               ),
                               'subComments',(SELECT COUNT(*)::integer FROM comments c WHERE c.parent_id = comments.id)
                           )
@@ -479,21 +484,31 @@ export class PostService {
                   '{}'
               ) as tags,
               (SELECT COUNT(*)::integer FROM comments WHERE post_id = $1) as countComments,
-              (SELECT COUNT(*)::integer FROM post_views WHERE post_id = $1) as countViews,
-              (
-                  SELECT 
-                  json_build_object(
-                      'value', likes.value
-                  )
-                  FROM likes WHERE likes.post_id = posts.id AND user_uid = $2
-              ) as isLiked,
-              (
-                SELECT 
-                json_build_object(
-                    'value', true
-                )
-                FROM user_post_favorite WHERE user_post_favorite.post_id = posts.id AND user_uid = $2
-            ) as isAddedToFavorite
+            ${current_uid
+              ?
+              `
+                      json_build_object(
+                        'value', (SELECT 
+                          CASE WHEN EXISTS 
+                        (
+                          SELECT user_post_favorite.post_id
+                          FROM user_post_favorite
+                          WHERE user_post_favorite.post_id = posts.id 
+                          AND user_uid = '${current_uid}'
+                        )
+                        THEN TRUE
+                        ELSE FALSE
+                      END)
+                      ) as isAddedToFavorite,
+                    json_build_object(
+                      'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
+                    ) as isLiked,
+                `
+              :
+              ``
+            }
+          (SELECT COUNT(*)::integer FROM post_views WHERE post_id = $1) as countViews
+
           FROM posts
           LEFT JOIN post_tag ON post_tag.post_id = posts.id
           LEFT JOIN tags ON tags.id = post_tag.tag_id
