@@ -112,7 +112,8 @@ export class PostFavoriteService {
                   SELECT 
                       posts.id as id, 
                       posts.title as title, 
-                      posts.body as body, 
+                      posts.body as body,
+                      posts.main_image as mainImage,
                       posts.created_at as createdAt, 
                       posts.updated_at as updatedAt, 
                       json_build_object(
@@ -137,9 +138,9 @@ export class PostFavoriteService {
                           '{}'
                       ) as tags,
 
-                    ${current_uid
-                      ?
-                      `
+                    ${
+                      current_uid
+                        ? `
                               json_build_object(
                                 'value', (SELECT 
                                   CASE WHEN EXISTS 
@@ -157,8 +158,7 @@ export class PostFavoriteService {
                               'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
                             ) as isLiked,
                         `
-                      :
-                      ``
+                        : ``
                     }
 
 

@@ -15,6 +15,13 @@ export const UpdatePostApiBody: ApiBodyOptions = {
         required: ['true'],
       },
 
+      main_image: {
+        type: 'string',
+        description:
+          'Фото берет из body. Должно быть так же как и в body "[id]textImage".',
+        required: ['false'],
+      },
+
       body: {
         type: 'object',
         properties: {

@@ -31,7 +31,7 @@ export class PostService {
 
   async createPost(
     files: Array<Express.Multer.File>,
-    { body, pet_id, title, tags, current_uid }: CreatePostDto,
+    { body, pet_id, title, tags, current_uid, main_image }: CreatePostDto,
   ) {
     try {
       const isMasterPet = (
@@ -58,16 +58,20 @@ export class PostService {
         files.forEach((file) => {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
-              `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
-            ] = this.fileService.createFile(file, 'project').fullPath)
+                `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
+              ] = this.fileService.createFile(file, 'project').fullPath)
             : null;
         });
       }
 
+      if (main_image) {
+        main_image = body[main_image] || undefined;
+      }
+
       const post = (
         await this.database.query(
-          'INSERT INTO posts(title, body, pet_id) VALUES ($1, $2, $3) RETURNING *',
-          [title, body, pet_id],
+          'INSERT INTO posts(title, body, pet_id, main_image) VALUES ($1, $2, $3, $4) RETURNING *',
+          [title, body, pet_id, main_image],
         )
       ).rows[0];
 
@@ -119,8 +123,8 @@ export class PostService {
       await this.database.query(`
       INSERT INTO post_tag(post_id, tag_id) VALUES 
       ${values
-          .map((value) => '(' + `${value.post_id}` + ', ' + value.tag_id.id + ')')
-          .join(', ')} 
+        .map((value) => '(' + `${value.post_id}` + ', ' + value.tag_id.id + ')')
+        .join(', ')} 
   `);
     } catch (err) {
       const errObj: IResponseFail = {
@@ -166,7 +170,7 @@ export class PostService {
 
   async updatePost(
     files: Array<Express.Multer.File>,
-    { body, title, id, current_uid }: UpdatePostDto,
+    { body, title, id, current_uid, main_image }: UpdatePostDto,
   ) {
     try {
       await this.isAuthor({ postId: id, current_uid });
@@ -175,10 +179,14 @@ export class PostService {
         files.forEach((file) => {
           file.fieldname.includes(this.#NAME_NEW_IMAGE)
             ? (body[
-              `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
-            ] = this.fileService.createFile(file, 'project').fullPath)
+                `${file.fieldname.match(/\d+/)[0]}${this.#NAME_PROPERTY_IMAGE}`
+              ] = this.fileService.createFile(file, 'project').fullPath)
             : null;
         });
+      }
+
+      if (main_image) {
+        main_image = body[main_image] || undefined;
       }
 
       const post = (
@@ -196,10 +204,10 @@ export class PostService {
         await this.database.query(
           `
               UPDATE posts
-              SET title = $2, body = $3, updated_at = NOW()
+              SET title = $2, body = $3, main_image = $4, updated_at = NOW()
               WHERE id = $1
           `,
-          [id, title || post.title, body],
+          [id, title || post.title, body, main_image || post.main_image],
         )
       ).rows[0];
 
@@ -278,7 +286,8 @@ export class PostService {
               SELECT 
                   posts.id as id, 
                   posts.title as title, 
-                  posts.body as body, 
+                  posts.body as body,
+                  posts.main_image as mainImage,
                   posts.created_at as createdAt, 
                   posts.updated_at as updatedAt, 
                   json_build_object(
@@ -302,9 +311,9 @@ export class PostService {
                       ) FILTER (WHERE tags.id IS NOT NULL),
                       '{}'
                   ) as tags,
-                  ${current_uid
-            ?
-            `
+                  ${
+                    current_uid
+                      ? `
                     json_build_object(
                       'value', (SELECT 
                         CASE WHEN EXISTS 
@@ -322,9 +331,8 @@ export class PostService {
                     'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
                   ) as isLiked,
               `
-            :
-            ``
-          }
+                      : ``
+                  }
                   (SELECT COUNT(*)::integer FROM comments WHERE post_id = posts.id) as countComments,
                   (SELECT COUNT(*)::integer FROM post_views WHERE post_id = posts.id) as countViews,
                   ARRAY(
@@ -407,7 +415,8 @@ export class PostService {
               SELECT 
               posts.id as id, 
               posts.title as title, 
-              posts.body as body, 
+              posts.body as body,
+              posts.main_image as mainImage,
               posts.created_at as createdAt, 
               posts.updated_at as updatedAt,
               json_build_object(
@@ -484,9 +493,9 @@ export class PostService {
                   '{}'
               ) as tags,
               (SELECT COUNT(*)::integer FROM comments WHERE post_id = $1) as countComments,
-            ${current_uid
-              ?
-              `
+            ${
+              current_uid
+                ? `
                       json_build_object(
                         'value', (SELECT 
                           CASE WHEN EXISTS 
@@ -504,8 +513,7 @@ export class PostService {
                       'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
                     ) as isLiked,
                 `
-              :
-              ``
+                : ``
             }
           (SELECT COUNT(*)::integer FROM post_views WHERE post_id = $1) as countViews
 

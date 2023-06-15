@@ -1,6 +1,7 @@
 import {
   IsNotEmpty,
   IsObject,
+  IsOptional,
   IsString,
   Max,
   MaxLength,
@@ -8,9 +9,6 @@ import {
 import { IsPetExist } from 'src/validations/petExists.validation';
 
 export class CreatePostDto {
-  @IsString()
-  default_image?: string;
-
   @IsString()
   @MaxLength(100, { message: "Field '$property' length must be less then 100" })
   title: string;
@@ -23,6 +21,10 @@ export class CreatePostDto {
 
   @IsPetExist({ message: "Pet with id '$value' does not exist!" })
   pet_id: number;
+
+  @IsOptional()
+  @IsString()
+  main_image: string;
 
   @IsString({ each: true })
   tags?: string[];

@@ -89,14 +89,12 @@ export class CommentService {
             ) as user,
                 ${
                   current_uid
-                  ?
-                  `
+                    ? `
                   json_build_object(
                     'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
                   ) as isLiked,
                   `
-                  :
-                  ''
+                    : ''
                 }
 
                 ARRAY(
@@ -147,12 +145,10 @@ export class CommentService {
                               'value', c.value,
                               ${
                                 current_uid
-                                ?
-                                `'isLiked',json_build_object(
+                                  ? `'isLiked',json_build_object(
                                   'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
                                 ),`
-                                :
-                                ''
+                                  : ''
                               }
                               'likes', ARRAY(
                                   SELECT json_build_object(
@@ -304,14 +300,12 @@ export class CommentService {
               ) as user,
                   ${
                     current_uid
-                    ?
-                    `
+                      ? `
                     json_build_object(
                       'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
                     ) as isLiked,
                     `
-                    :
-                    ''
+                      : ''
                   }
 
                   ARRAY(
@@ -374,12 +368,10 @@ export class CommentService {
                                 ),
                                 ${
                                   current_uid
-                                  ?
-                                  `'isLiked',json_build_object(
+                                    ? `'isLiked',json_build_object(
                                     'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
                                   ),`
-                                  :
-                                  ''
+                                    : ''
                                 }
 
                                 'replyUser', (
@@ -504,14 +496,12 @@ export class CommentService {
               ) as user,
               ${
                 current_uid
-                ?
-                `
+                  ? `
                 json_build_object(
                   'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
                 ) as isLiked,
                 `
-                :
-                ''
+                  : ''
               }
               ARRAY(
                   SELECT json_build_object(

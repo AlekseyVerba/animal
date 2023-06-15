@@ -22,5 +22,9 @@ export class UpdatePostDto {
     [key: `${number}textImage`]: string;
   };
 
+  @IsOptional()
+  @IsString()
+  main_image: string;
+
   current_uid: string;
 }
