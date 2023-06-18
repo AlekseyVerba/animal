@@ -13,6 +13,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { DeletePostDto } from './dto/delete-post.dto';
 import { IsAuthorDto } from './dto/is-author.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
+import { GetLinePostsDto } from './dto/get-line-posts.dto'
 import { IResponseFail } from 'src/types/response/index.interface';
 
 @Injectable()
@@ -370,6 +371,111 @@ export class PostService {
         )
       ).rows;
     } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+      throw new HttpException(errObj, err.status || 500);
+    }
+  }
+
+  async getLinePosts({ limit = 20, offset = 0, order = 'from_users_and_pets' , seenIdPosts ,current_uid }: GetLinePostsDto) {
+    try {
+
+      return (
+        await this.database.query(
+          `
+              SELECT 
+                  posts.id as id, 
+                  posts.title as title, 
+                  posts.body as body,
+                  posts.main_image as mainImage,
+                  posts.created_at as createdAt, 
+                  posts.updated_at as updatedAt, 
+                  json_build_object(
+                      'id',pets.id,
+                      'avatars',json_build_object(
+                          'small',pet_avatar.small,
+                          'middle',pet_avatar.middle,
+                          'large',pet_avatar.large,
+                          'default_avatar',pet_avatar.default_avatar
+                      ),
+                      'name',pets.name
+                  ) AS pet,
+                  COALESCE(
+                      ARRAY_AGG(
+                          CASE WHEN tags.id IS NOT NULL THEN
+                              json_build_object(
+                                  'id', tags.id,
+                                  'name', tags.name
+                              )
+                          END
+                      ) FILTER (WHERE tags.id IS NOT NULL),
+                      '{}'
+                  ) as tags,
+                  ${
+                    current_uid
+                      ? `
+                    json_build_object(
+                      'value', (SELECT 
+                        CASE WHEN EXISTS 
+                      (
+                        SELECT user_post_favorite.post_id
+                        FROM user_post_favorite
+                        WHERE user_post_favorite.post_id = posts.id 
+                        AND user_uid = '${current_uid}'
+                      )
+                      THEN TRUE
+                      ELSE FALSE
+                    END)
+                    ) as isAddedToFavorite,
+                  json_build_object(
+                    'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
+                  ) as isLiked,
+              `
+                      : ``
+                  }
+                  (SELECT COUNT(*)::integer FROM comments WHERE post_id = posts.id) as countComments,
+                  (SELECT COUNT(*)::integer FROM post_views WHERE post_id = posts.id) as countViews,
+                  ARRAY(
+                      SELECT json_build_object(
+                          'count', count(*),
+                          'value', value
+                      )
+                      FROM likes
+                      WHERE likes.post_id = posts.id
+                      GROUP BY value, post_id
+                  ) as likes
+              FROM posts
+              LEFT JOIN post_tag ON post_tag.post_id = posts.id 
+              LEFT JOIN tags ON tags.id = post_tag.tag_id
+              INNER JOIN pets ON pets.id = posts.pet_id
+              LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
+                WHERE
+                  ${
+                    order === 'from_users_and_pets'
+                    ?
+                    '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $3))'
+                    :
+                    `
+                    (post_tag.tag_id IN (SELECT tag_id FROM user_tag WHERE user_uid = $3))
+                      AND
+                    (posts.id NOT IN (SELECT post_id FROM post_views WHERE user_uid = $3))
+                      AND
+                    (posts.id NOT IN (${seenIdPosts.map(id => id + '::int').join(', ')}))
+                    `
+                  }
+                  
+              GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar
+              ORDER BY ${order === 'from_users_and_pets' ? 'posts.created_at DESC' : 'RANDOM()'}
+              LIMIT $1
+              OFFSET $2
+          `,
+          [limit, offset, current_uid],
+        )
+      ).rows;
+
+    } catch(err) {
       const errObj: IResponseFail = {
         status: false,
         message: err.message,

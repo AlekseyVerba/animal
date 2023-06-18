@@ -18,6 +18,7 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreatePostApiBody } from './configs/create-post.config';
 import { UpdatePostApiBody } from './configs/update-post.config';
+import { GetLinePostsApiBody } from './configs/get-line-posts.config'
 
 //GUARDS
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -31,6 +32,7 @@ import { UserProperty } from 'src/decorators/userProperty.decorator';
 import { PostIdParam } from './dto/postId.param.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
+import { GetLinePostsDto } from './dto/get-line-posts.dto'
 
 @ApiTags('Post')
 @Controller('post')
@@ -148,5 +150,21 @@ export class PostController {
       status: true,
       data: await this.postService.getPost({ postId, current_uid }),
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Получить ленту постов' })
+  @ApiBody(GetLinePostsApiBody)
+  @Post('line/all')
+  async getLinePosts(
+    @Body() dto: GetLinePostsDto,
+    @UserProperty('uid') current_uid: string
+  ) {
+    dto.current_uid = current_uid
+
+    return {
+      status: true,
+      data: await this.postService.getLinePosts(dto)
+    }
   }
 }

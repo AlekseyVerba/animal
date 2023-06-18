@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
 import { DATABASE_POOL } from 'src/constants/database.constants';
 import { IResponseFail } from 'src/types/response/index.interface';
@@ -71,8 +71,35 @@ export class TagService {
     }
   }
 
+  async hasUserTag({ uid, tag_id }: AddTagToUserDto) {
+    return !!(
+      await this.database.query(
+        `
+            SELECT 
+              user_uid
+            FROM
+              user_tag
+            WHERE
+              user_uid = $1 AND tag_id = $2
+            LIMIT 1
+          `,
+        [uid, tag_id],
+      )
+    ).rows[0]
+  }
+
   async addTagToUser({ uid, tag_id }: AddTagToUserDto) {
     try {
+
+      if (await this.hasUserTag({ uid, tag_id })) {
+        const errObj: IResponseFail = {
+          status: false,
+          message: 'У вас уже существует данный тэг',
+        };
+
+        throw new HttpException(errObj, HttpStatus.BAD_REQUEST);
+      }
+
       return (
         await this.database.query(
           `
