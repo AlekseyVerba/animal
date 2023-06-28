@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -8,8 +9,15 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+
+//DECORATORS
 import { UserProperty } from 'src/decorators/userProperty.decorator';
+
+//GUARDS
 import { AuthGuard } from 'src/guards/auth.guard';
+
+//SERVICES
 import { ProfileService } from './profile.service';
 
 //DTO
@@ -19,16 +27,19 @@ import { GetProfilePetDto } from './dto/getProfilePet.dto';
 import { GetProfileUserDto } from './dto/getProfileUser.dto';
 import { GetFollowingUsersDto } from './dto/getFollowingUsers.dto';
 import { LimitOffsetDto } from './dto/limitOffset.dto';
+import { GetProfileFollowersDto } from './dto/getProfileFollowers.dto'
 
 //PIPES
 import { ValidationPipe } from 'src/pipes/validation.pipe';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+
+//CONFIGS
+import { getProfileFollowersApiBody } from './configs/getProfileFollowers.config'
 
 @ApiTags('Profile')
 @UsePipes(new ValidationPipe())
 @Controller('profile')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(private readonly profileService: ProfileService) { }
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Follow to user' })
@@ -135,6 +146,16 @@ export class ProfileController {
   }
 
   @ApiOperation({ summary: 'Get following users in tab users' })
+  @ApiQuery({
+    name: 'limit',
+    type: 'number',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    type: 'number',
+    required: false,
+  })
   @Get('user/:user_uid/following/users')
   async getFollowingUsers(
     @UserProperty('uid') current_uid: string,
@@ -154,6 +175,16 @@ export class ProfileController {
   }
 
   @ApiOperation({ summary: 'Get following pets in tab pets' })
+  @ApiQuery({
+    name: 'limit',
+    type: 'number',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    type: 'number',
+    required: false,
+  })
   @Get('user/:user_uid/following/pets')
   async getFollowingPets(
     @UserProperty('uid') current_uid: string,
@@ -187,5 +218,31 @@ export class ProfileController {
       status: true,
       data,
     };
+  }
+
+  @ApiOperation({ summary: 'Получить подписчиков профиля' })
+  @ApiQuery({
+    name: 'limit',
+    type: 'number',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'offset',
+    type: 'number',
+    required: false,
+  })
+  @ApiBody(getProfileFollowersApiBody)
+  @Post('followers')
+  async getProfileFollowers(
+    @UserProperty('uid') current_uid: string,
+    @Body() dto: GetProfileFollowersDto,
+    @Query() query: LimitOffsetDto
+  ) {
+    dto.uid = current_uid
+
+    return {
+      status: true,
+      data: await this.profileService.getProfileFollowers(dto, query)
+    }
   }
 }

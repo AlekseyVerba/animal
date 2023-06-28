@@ -12,6 +12,7 @@ import { IResponseFail } from 'src/types/response/index.interface';
 import { FollowAndUnfollowProfileDto } from './dto/followAndUnfollowProfile';
 import { GetFollowingUsersDto } from './dto/getFollowingUsers.dto';
 import { LimitOffsetDto } from './dto/limitOffset.dto';
+import { GetProfileFollowersDto } from './dto/getProfileFollowers.dto'
 
 @Injectable()
 export class ProfileService {
@@ -387,6 +388,7 @@ export class ProfileService {
             INNER JOIN user_user_followers ON users.uid = user_user_followers.user_uid
             LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
             WHERE user_user_followers.follower_uid = $1
+            ORDER BY user_user_followers.created DESC
             LIMIT $3
             OFFSET $4
             `,
@@ -410,7 +412,7 @@ export class ProfileService {
     offset,
   }: GetFollowingUsersDto & LimitOffsetDto) {
     try {
-      console.log(uid);
+
       return (
         await this.database.query(
           `
@@ -429,6 +431,7 @@ export class ProfileService {
             INNER JOIN user_pet_followers ON pets.id = user_pet_followers.pet_id
             LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
             WHERE user_pet_followers.follower_uid = $1
+            ORDER BY user_pet_followers.created DESC
             LIMIT $3
             OFFSET $4
             `,
@@ -436,6 +439,66 @@ export class ProfileService {
         )
       ).rows;
     } catch (err) {
+      const errObj: IResponseFail = {
+        status: false,
+        message: err.message,
+      };
+
+      throw new HttpException(errObj, err.status || 500);
+    }
+  }
+
+  async getProfileFollowers({ user_uid, pet_id, uid }: GetProfileFollowersDto, { limit = 20, offset = 0 }: LimitOffsetDto) {
+    try {
+
+      let queryResult
+
+      if (user_uid) {
+        queryResult = await this.database.query(`
+          SELECT uid, name, nickname,
+            json_build_object(
+                'small',user_avatar.small,
+                'middle',user_avatar.middle,
+                'large',user_avatar.large,
+                'default_avatar',user_avatar.default_avatar
+            ) AS avatars,
+            CASE 
+                WHEN (SELECT COUNT(*) FROM user_user_followers WHERE user_user_followers.user_uid = users.uid AND user_user_followers.follower_uid = $2) > 0 THEN true
+                ELSE false
+            END as is_subscribed
+          FROM users
+          INNER JOIN user_user_followers ON users.uid = user_user_followers.follower_uid
+          LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
+          WHERE user_user_followers.user_uid = $1
+          ORDER BY user_user_followers.created DESC
+          LIMIT $3
+          OFFSET $4
+        `, [user_uid, uid, limit, offset])
+      } else {
+        queryResult = await this.database.query(`
+          SELECT uid, name, nickname,
+            json_build_object(
+                'small',user_avatar.small,
+                'middle',user_avatar.middle,
+                'large',user_avatar.large,
+                'default_avatar',user_avatar.default_avatar
+            ) AS avatars,
+            CASE 
+                WHEN (SELECT COUNT(*) FROM user_user_followers WHERE user_user_followers.user_uid = users.uid AND user_user_followers.follower_uid = $2) > 0 THEN true
+                ELSE false
+            END as is_subscribed
+          FROM users
+          INNER JOIN user_pet_followers ON users.uid = user_pet_followers.follower_uid
+          LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
+          WHERE user_pet_followers.pet_id = $1
+          ORDER BY user_pet_followers.created DESC
+          LIMIT $3
+          OFFSET $4
+        `, [pet_id, uid ,limit, offset])
+      }
+      
+      return queryResult.rows
+    } catch(err) {
       const errObj: IResponseFail = {
         status: false,
         message: err.message,
