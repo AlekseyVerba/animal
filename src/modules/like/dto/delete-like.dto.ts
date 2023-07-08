@@ -12,4 +12,7 @@ export class DeleteLikeDto {
   @IsOptional()
   @IsCommentExist()
   commentId?: number;
+
+  @IsOptional()
+  messageId?: number
 }

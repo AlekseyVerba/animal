@@ -105,8 +105,16 @@ export class FileService {
     }
   }
 
+  isImage(type: string) {
+    return ['svg', 'jpeg', 'jpg', 'png', 'webp'].includes(type)
+  }
+
+  getTypeOfFile(file: Express.Multer.File) {
+    return file.originalname.split('.').slice(-1).pop()
+  }
+
   createFile(file: Express.Multer.File, nameDir: string) {
-    const typeFile = file.originalname.split('.').slice(-1).pop();
+    const typeFile = this.getTypeOfFile(file);
     const pathDir = join(__dirname, '..', '..', '..', 'assets', nameDir);
 
     if (!fs.existsSync(pathDir)) {

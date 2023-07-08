@@ -2,7 +2,6 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    console.log(Sequelize.NOW)
     const Post = queryInterface.createTable('posts', {
       id: {
         type: Sequelize.INTEGER,

@@ -9,6 +9,6 @@ import { FileModule } from 'src/modules/file/file.module';
   imports: [forwardRef(() => AppModule), FileModule],
   controllers: [UserController],
   providers: [UserService, IsUserExistConstraint],
-  exports: [UserService],
+  exports: [UserService, IsUserExistConstraint],
 })
 export class UserModule {}

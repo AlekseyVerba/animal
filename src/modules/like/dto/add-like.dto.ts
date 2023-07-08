@@ -20,5 +20,9 @@ export class AddLikeDto {
   @IsOptional()
   @IsPostExist()
   postId?: number;
+
+  @IsOptional()
+  messageId?: number
+
   current_uid: string;
 }

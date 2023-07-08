@@ -45,6 +45,7 @@ export class LikeService {
   async isAddedByCommentAndPost({
     commentId,
     postId,
+    messageId,
     current_uid,
   }: IsAddedDto) {
     try {
@@ -53,10 +54,16 @@ export class LikeService {
           await this.database.query(
             `
             SELECT id FROM likes
-            WHERE ((comment_id = $1 AND post_id IS NULL) OR (post_id = $2 AND comment_id IS NULL)) AND user_uid = $3
+            WHERE (
+              (comment_id = $1 AND post_id IS NULL AND message_id IS NULL) 
+                OR 
+              (post_id = $2 AND comment_id IS NULL AND message_id IS NULL)
+                OR
+              (message_id = $3 AND post_id IS NULL AND comment_id IS NULL)
+            ) AND user_uid = $4
             LIMIT 1
         `,
-            [commentId, postId, current_uid],
+            [commentId, postId, messageId ,current_uid],
           )
         ).rows[0] || null;
 
@@ -70,11 +77,12 @@ export class LikeService {
     }
   }
 
-  async addLike({ value, commentId, postId, current_uid }: AddLikeDto) {
+  async addLike({ value, commentId, postId, messageId , current_uid }: AddLikeDto) {
     try {
       const like = await this.isAddedByCommentAndPost({
         commentId,
         postId,
+        messageId,
         current_uid,
       });
 
@@ -89,11 +97,11 @@ export class LikeService {
       return (
         await this.database.query(
           `
-              INSERT INTO likes(value, comment_id, post_id, user_uid)
-              VALUES($1, $2, $3, $4)
+              INSERT INTO likes(value, comment_id, post_id, message_id ,user_uid)
+              VALUES($1, $2, $3, $4, $5)
               RETURNING *
           `,
-          [value, commentId, postId, current_uid],
+          [value, commentId, postId, messageId, current_uid],
         )
       ).rows[0];
     } catch (err) {
@@ -105,11 +113,12 @@ export class LikeService {
     }
   }
 
-  async deleteLike({ commentId, postId, current_uid }: DeleteLikeDto) {
+  async deleteLike({ commentId, postId, current_uid, messageId }: DeleteLikeDto) {
     try {
       const like = await this.isAddedByCommentAndPost({
         current_uid,
         commentId,
+        messageId,
         postId,
       });
 
@@ -124,9 +133,15 @@ export class LikeService {
       await this.database.query(
         `
               DELETE FROM likes
-              WHERE ((comment_id = $2 AND post_id IS NULL) OR (post_id = $3 OR comment_id IS NULL)) AND user_uid = $1
+              WHERE (
+                (comment_id = $1 AND post_id IS NULL AND message_id IS NULL) 
+                  OR 
+                (post_id = $2 AND comment_id IS NULL AND message_id IS NULL)
+                  OR
+                (message_id = $3 AND post_id IS NULL AND comment_id IS NULL)
+              ) AND user_uid = $4
           `,
-        [current_uid, commentId, postId],
+          [commentId, postId, messageId ,current_uid],
       );
 
       return true;
@@ -139,11 +154,12 @@ export class LikeService {
     }
   }
 
-  async updateLike({ current_uid, postId, value, commentId }: UpdateLikeDto) {
+  async updateLike({ current_uid, postId, messageId , value, commentId }: UpdateLikeDto) {
     try {
       const like = await this.isAddedByCommentAndPost({
         commentId,
         postId,
+        messageId,
         current_uid,
       });
 
@@ -160,10 +176,17 @@ export class LikeService {
           `
               UPDATE likes
               SET value = $1
-              WHERE ((comment_id = $3 AND post_id IS NULL) OR (post_id = $4 OR comment_id IS NULL)) AND user_uid = $2
+              WHERE (
+                  (comment_id = $3 AND post_id IS NULL AND message_id IS NULL)
+                    OR 
+                  (post_id = $4 AND comment_id IS NULL AND message_id IS NULL)
+                    OR
+                  (message_id = $5 OR comment_id IS NULL AND post_id IS NULL)
+                ) 
+                AND user_uid = $2
               RETURNING *
           `,
-          [value, current_uid, commentId, postId],
+          [value, current_uid, commentId, postId, messageId],
         )
       ).rows[0];
     } catch (err) {
@@ -178,12 +201,14 @@ export class LikeService {
   async getLikes({
     postId,
     commentId,
+    messageId,
     limit = 20,
     offset = 0,
     sort = '',
   }: {
     postId?: number;
     commentId?: number;
+    messageId?: number;
     limit?: number;
     offset?: number;
     sort?: string;
@@ -209,17 +234,19 @@ export class LikeService {
               LEFT JOIN user_avatar ON user_avatar.user_uid = likes.user_uid
               WHERE 
                   (
-                      (likes.post_id = $1 AND likes.comment_id IS NULL) 
-                          OR 
-                      (likes.post_id IS NULL AND likes.comment_id = $2)
+                      (likes.post_id = $1 AND likes.comment_id IS NULL AND likes.message_id IS NULL) 
+                        OR 
+                      (likes.comment_id = $2 AND likes.post_id IS NULL AND likes.message_id IS NULL)
+                        OR
+                      (likes.message_id = $3 likes.comment_id IS NULL AND likes.post_id IS NULLAND likes.message_id IS NULL)
                   )
                       AND 
   
-                  value LIKE '%' || $5 || '%'
-              LIMIT $3
-              OFFSET $4
+                  value LIKE '%' || $6 || '%'
+              LIMIT $4
+              OFFSET $5
           `,
-          [postId, commentId, limit, offset, sort],
+          [postId, commentId, messageId ,limit, offset, sort],
         )
       ).rows;
     } catch (err) {

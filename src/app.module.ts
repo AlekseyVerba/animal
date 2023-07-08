@@ -22,7 +22,9 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { PostModule } from './modules/post/post.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { LikeModule } from './modules/like/like.module';
+import { ChatModule } from './modules/chat/chat.module'
 
+//CONSTANTS
 import { DATABASE_POOL } from './constants/database.constants';
 
 @Module({
@@ -45,6 +47,7 @@ import { DATABASE_POOL } from './constants/database.constants';
     PostModule,
     CommentModule,
     LikeModule,
+    ChatModule
   ],
   controllers: [AppController],
   providers: [

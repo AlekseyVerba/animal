@@ -20,4 +20,7 @@ export class UpdateLikeDto {
   @IsOptional()
   @IsCommentExist()
   commentId?: number;
+
+  @IsOptional()
+  messageId?: number
 }

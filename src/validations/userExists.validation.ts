@@ -19,9 +19,7 @@ export class IsUserExistConstraint implements ValidatorConstraintInterface {
       return false;
     }
 
-    return this.userService.isUserExistByUid(userName).then((result) => {
-      return result;
-    });
+    return await this.userService.isUserExistByUid(userName);
   }
 }
 

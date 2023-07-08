@@ -80,6 +80,8 @@ export class UserService {
         )
       ).rows[0];
 
+      console.log(candidate)
+
       return !!candidate;
     } catch (err) {
       console.log(err);
