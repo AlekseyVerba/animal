@@ -98,109 +98,82 @@ export class AuthService {
   }
 
   async login({ password, email }: LoginDto): Promise<any> {
-    try {
-      const candidate = (
-        await this.database.query(
-          `
-                SELECT "isActivate", password, uid, email FROM users
-                WHERE email = $1
-                LIMIT 1
-            `,
-          [email],
-        )
-      ).rows[0];
+    const candidate = (
+      await this.database.query(
+        `
+              SELECT "isActivate", password, uid, email FROM users
+              WHERE email = $1
+              LIMIT 1
+          `,
+        [email],
+      )
+    ).rows[0];
 
-      if (!candidate.isActivate) {
-        const objError: IResponseFail = {
-          status: false,
-          message: 'User is not active',
-        };
-
-        throw new BadRequestException(objError);
-      }
-
-      const checkPassword = await compare(password, candidate.password);
-
-      if (!checkPassword) {
-        const objError: IResponseFail = {
-          status: false,
-          message: 'Incorrect data',
-        };
-
-        throw new BadRequestException(objError);
-      }
-
-      const jwtToken = sign(
-        { uid: candidate.uid, email: candidate.email },
-        JWT_SECRET,
-      );
-
-      return {
-        user: await this.userService.getUserWithAvatars(candidate.uid),
-        jwtToken,
-      };
-    } catch (err) {
+    if (!candidate.isActivate) {
       const objError: IResponseFail = {
         status: false,
-        message: err.message,
+        message: 'User is not active',
       };
 
-      throw new HttpException(objError, err.status || 500);
+      throw new BadRequestException(objError);
     }
+
+    const checkPassword = await compare(password, candidate.password);
+
+    if (!checkPassword) {
+      const objError: IResponseFail = {
+        status: false,
+        message: 'Incorrect data',
+      };
+
+      throw new BadRequestException(objError);
+    }
+
+    const jwtToken = sign(
+      { uid: candidate.uid, email: candidate.email },
+      JWT_SECRET,
+    );
+
+    return {
+      user: await this.userService.getUserWithAvatars(candidate.uid),
+      jwtToken,
+    };
   }
 
   async confirmRegistration({ code, email }: RegistrationConfirmDto) {
-    try {
-      const user = await this.tokenService.confirmRegistration({
-        token: code,
-        email,
-      });
-      const jwtToken = sign({ uid: user.uid, email: user.email }, JWT_SECRET);
+    const user = await this.tokenService.confirmRegistration({
+      token: code,
+      email,
+    });
+    const jwtToken = sign({ uid: user.uid, email: user.email }, JWT_SECRET);
 
-      return {
-        user,
-        jwtToken,
-      };
-    } catch (err) {
-      const objError: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-
-      throw new HttpException(objError, err.status || 500);
-    }
+    return {
+      user,
+      jwtToken,
+    };
   }
 
   async authCheck(uid: string) {
-    try {
-      const candidate = await this.userService.getUserByUid(uid);
+    const candidate = await this.userService.getUserByUid(uid);
 
-      if (!candidate) {
-        const objError: IResponseFail = {
-          status: false,
-          message: 'Пользователь не найден',
-        };
-
-        throw new NotFoundException(objError);
-      }
-
-      const jwtToken = sign(
-        { uid: candidate.uid, email: candidate.email },
-        JWT_SECRET,
-      );
-
-      return {
-        user: candidate,
-        jwtToken,
-      };
-    } catch (err) {
+    if (!candidate) {
       const objError: IResponseFail = {
         status: false,
-        message: err.message,
+        message: 'Пользователь не найден',
       };
 
-      throw new HttpException(objError, err.status || 500);
+      throw new NotFoundException(objError);
     }
+
+    const jwtToken = sign(
+      { uid: candidate.uid, email: candidate.email },
+      JWT_SECRET,
+    );
+
+    return {
+      user: candidate,
+      jwtToken,
+    };
   }
 
   async rememberPassword(email: string): Promise<boolean> {

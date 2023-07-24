@@ -14,61 +14,37 @@ export class TagService {
   ) {}
 
   async getAllParentTags() {
-    try {
-      return (
-        await this.database.query(`
-            SELECT * FROM tags
-            WHERE parent_id IS null
-        `)
-      ).rows;
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return (
+      await this.database.query(`
+          SELECT * FROM tags
+          WHERE parent_id IS null
+      `)
+    ).rows;
   }
 
   async getAllChildsTagsFromParent(parent_id: number) {
-    try {
-      return (
-        await this.database.query(
-          `
-                SELECT * FROM tags
-                WHERE parent_id = $1
-            `,
-          [parent_id],
-        )
-      ).rows;
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return (
+      await this.database.query(
+        `
+              SELECT * FROM tags
+              WHERE parent_id = $1
+          `,
+        [parent_id],
+      )
+    ).rows;
   }
 
   async getTagById(id: number) {
-    try {
-      return (
-        await this.database.query(
-          `
-                SELECT * FROM tags
-                WHERE id = $1
-                LIMIT 1
-            `,
-          [id],
-        )
-      ).rows[0];
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return (
+      await this.database.query(
+        `
+              SELECT * FROM tags
+              WHERE id = $1
+              LIMIT 1
+          `,
+        [id],
+      )
+    ).rows[0];
   }
 
   async hasUserTag({ uid, tag_id }: AddTagToUserDto) {
@@ -89,33 +65,25 @@ export class TagService {
   }
 
   async addTagToUser({ uid, tag_id }: AddTagToUserDto) {
-    try {
 
-      if (await this.hasUserTag({ uid, tag_id })) {
-        const errObj: IResponseFail = {
-          status: false,
-          message: 'У вас уже существует данный тэг',
-        };
-
-        throw new HttpException(errObj, HttpStatus.BAD_REQUEST);
-      }
-
-      return (
-        await this.database.query(
-          `
-                INSERT INTO user_tag(user_uid, tag_id)
-                VALUES($1, $2)
-                RETURNING *
-            `,
-          [uid, tag_id],
-        )
-      ).rows[0];
-    } catch (err) {
+    if (await this.hasUserTag({ uid, tag_id })) {
       const errObj: IResponseFail = {
         status: false,
-        message: err.message,
+        message: 'У вас уже существует данный тэг',
       };
-      throw new HttpException(errObj, err.status || 500);
+
+      throw new HttpException(errObj, HttpStatus.BAD_REQUEST);
     }
+
+    return (
+      await this.database.query(
+        `
+              INSERT INTO user_tag(user_uid, tag_id)
+              VALUES($1, $2)
+              RETURNING *
+          `,
+        [uid, tag_id],
+      )
+    ).rows[0];
   }
 }

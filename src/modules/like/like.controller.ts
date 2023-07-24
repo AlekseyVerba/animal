@@ -13,6 +13,7 @@ import { TYPE_LIKES } from './constants/TYPE-LIKES.constant';
 
 //SERVICES
 import { LikeService } from './like.service';
+import { ChatGateway } from '../chat/chat.gateway';
 
 //GUARDS
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -36,7 +37,10 @@ import { CommentIdParam } from '../comment/dto/commentId.param';
 @ApiTags('Like')
 @Controller('like')
 export class LikeController {
-  constructor(private readonly likeService: LikeService) {}
+  constructor(
+    private readonly likeService: LikeService,
+    private readonly chatGateway: ChatGateway
+  ) {}
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Add like' })
@@ -47,9 +51,15 @@ export class LikeController {
     @Body() dto: AddLikeDto,
   ) {
     dto.current_uid = current_uid;
+    const message = await this.likeService.addLike(dto)
+
+    if (message.message_id) {
+      this.chatGateway.addLike(message.id)
+    }
+
     return {
       status: true,
-      data: await this.likeService.addLike(dto),
+      data: message,
       message: 'Лайк добавлен',
     };
   }
@@ -63,7 +73,12 @@ export class LikeController {
     @Body() dto: DeleteLikeDto,
   ) {
     dto.current_uid = current_uid;
-    await this.likeService.deleteLike(dto);
+    const like = await this.likeService.deleteLike(dto);
+
+    if (like.message_id) {
+      this.chatGateway.deleteLike(like)
+    }
+
     return {
       status: true,
       message: 'Лайк удалён',
@@ -79,10 +94,15 @@ export class LikeController {
     @Body() dto: UpdateLikeDto,
   ) {
     dto.current_uid = current_uid;
+    const like = await this.likeService.updateLike(dto)
+
+    if (like.message_id) {
+      this.chatGateway.updateLike(like.id)
+    }
 
     return {
       status: true,
-      data: await this.likeService.updateLike(dto),
+      data: like,
       message: 'Лайк обновлён',
     };
   }

@@ -3,6 +3,7 @@ import { AnyFilesInterceptor } from "@nestjs/platform-express";
 
 //SERVICES
 import { ChatService } from './chat.service'
+import { ChatGateway } from './chat.gateway'
 
 //DTOS
 import { CreateMessageDto } from './dto/create-message.dto'
@@ -25,7 +26,8 @@ import { ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 @Controller('chat')
 export class ChatController {
     constructor(
-        private readonly chatService: ChatService
+        private readonly chatService: ChatService,
+        private readonly chatGateway: ChatGateway
     ) { }
 
     @ApiOperation({ summary: `Получить чаты. Получаем последние чаты и последнее сообщение. 
@@ -88,7 +90,12 @@ export class ChatController {
     ) {
         dto.uid = current_uid
 
-        await this.chatService.readMessages(dto)
+        const messages = await this.chatService.readMessages(dto)
+
+        if (messages.length) {
+            this.chatGateway.readMessages(messages)
+        }
+
         return {
             status: true
         }
@@ -108,10 +115,11 @@ export class ChatController {
         @UploadedFiles() files: Array<Express.Multer.File>,
     ) {
         dto.uid = current_uid
+        const message = await this.chatService.createMessage(dto, files)
+        this.chatGateway.createMessage(message)
 
         return {
-            status: true,
-            data: await this.chatService.createMessage(dto, files)
+            status: true
         }
     }
 
@@ -122,7 +130,11 @@ export class ChatController {
         @UserProperty('uid') current_uid: string,
     ) {
         dto.uid = current_uid
-        await this.chatService.deleteMessage(dto)
+        const messages = await this.chatService.deleteMessage(dto)
+
+        if (messages[0]) {
+            this.chatGateway.deleteMessage(messages[0])
+        }
 
         return {
             status: true

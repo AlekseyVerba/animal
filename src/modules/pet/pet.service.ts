@@ -191,62 +191,46 @@ export class PetService {
   }
 
   async delete({ pet_id, user_uid }: DeletePetDto) {
-    try {
-      const pet = (
-        await this.database.query(
-          `
-            SELECT user_uid 
-            FROM pets
-            WHERE id = $1
-            LIMIT 1 
-        `,
-          [pet_id],
-        )
-      ).rows[0];
-
-      if (pet.user_uid != user_uid) {
-        const objError: IResponseFail = {
-          status: false,
-          message: 'You are not master this pet',
-        };
-
-        throw new ForbiddenException(objError);
-      }
-
+    const pet = (
       await this.database.query(
         `
-                DELETE FROM pets
-                WHERE id = $1
-            `,
+          SELECT user_uid 
+          FROM pets
+          WHERE id = $1
+          LIMIT 1 
+      `,
         [pet_id],
-      );
-    } catch (err) {
-      const errObj: IResponseFail = {
+      )
+    ).rows[0];
+
+    if (pet.user_uid != user_uid) {
+      const objError: IResponseFail = {
         status: false,
-        message: err.message,
+        message: 'You are not master this pet',
       };
-      throw new HttpException(errObj, err.status || 500);
+
+      throw new ForbiddenException(objError);
     }
+
+    await this.database.query(
+      `
+              DELETE FROM pets
+              WHERE id = $1
+          `,
+      [pet_id],
+    );
   }
 
   async getPetById(id: number) {
-    try {
-      return (
-        await this.database.query(
-          `
-                SELECT * FROM pets
-                WHERE id = $1
-                LIMIT 1
-            `,
-          [id],
-        )
-      ).rows[0];
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return (
+      await this.database.query(
+        `
+              SELECT * FROM pets
+              WHERE id = $1
+              LIMIT 1
+          `,
+        [id],
+      )
+    ).rows[0];
   }
 }

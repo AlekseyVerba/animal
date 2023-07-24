@@ -28,7 +28,7 @@ export class CommentService {
 
     private readonly userService: UserService,
     private readonly postService: PostService,
-  ) {}
+  ) { }
 
   async addCommentToProject({
     value,
@@ -37,38 +37,30 @@ export class CommentService {
     parent_id,
     reply_uid,
   }: AddCommentDto) {
-    try {
-      if (parent_id) {
-        const parentComment = await this.getCommentById(parent_id);
+    if (parent_id) {
+      const parentComment = await this.getCommentById(parent_id);
 
-        if (parentComment.parent_id) {
-          const errObj: IResponseFail = {
-            status: false,
-            message: 'Родительский комментарий не является родительским',
-          };
-          throw new HttpException(errObj, HttpStatus.NOT_ACCEPTABLE);
-        }
+      if (parentComment.parent_id) {
+        const errObj: IResponseFail = {
+          status: false,
+          message: 'Родительский комментарий не является родительским',
+        };
+        throw new HttpException(errObj, HttpStatus.NOT_ACCEPTABLE);
       }
-
-      const comment = (
-        await this.database.query(
-          `
-              INSERT INTO comments(value, user_uid, post_id, parent_id, reply_uid)
-              VALUES($1, $2, $3, $4, $5)
-              RETURNING *;
-          `,
-          [value, current_uid, postId, parent_id, reply_uid],
-        )
-      ).rows[0];
-
-      return await this.getCommenWithData(comment.id, current_uid);
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
     }
+
+    const comment = (
+      await this.database.query(
+        `
+            INSERT INTO comments(value, user_uid, post_id, parent_id, reply_uid)
+            VALUES($1, $2, $3, $4, $5)
+            RETURNING *;
+        `,
+        [value, current_uid, postId, parent_id, reply_uid],
+      )
+    ).rows[0];
+
+    return await this.getCommenWithData(comment.id, current_uid);
   }
 
   async getCommenWithData(id: number, current_uid?: string) {
@@ -87,15 +79,14 @@ export class CommentService {
                     'default_avatar', user_avatar.default_avatar
                 )
             ) as user,
-                ${
-                  current_uid
-                    ? `
+                ${current_uid
+          ? `
                   json_build_object(
                     'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
                   ) as isLiked,
                   `
-                    : ''
-                }
+          : ''
+        }
 
                 ARRAY(
                     SELECT json_build_object(
@@ -143,13 +134,12 @@ export class CommentService {
                                 )
                               ),
                               'value', c.value,
-                              ${
-                                current_uid
-                                  ? `'isLiked',json_build_object(
+                              ${current_uid
+          ? `'isLiked',json_build_object(
                                   'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
                                 ),`
-                                  : ''
-                              }
+          : ''
+        }
                               'likes', ARRAY(
                                   SELECT json_build_object(
                                       'count', count(*),
@@ -186,89 +176,79 @@ export class CommentService {
     value,
     reply_uid,
   }: UpdateCommentDto) {
-    try {
-      await this.isAuthorComment({ commentId, current_uid });
+    await this.isAuthorComment({ commentId, current_uid });
 
-      const comment = (
-        await this.database.query(
-          `
-              UPDATE comments
-              SET value = $1, updated_at = NOW() ${
-                reply_uid ? `, reply_uid = '${reply_uid}'` : ''
-              }
-              WHERE id = $2
-              RETURNING *
-          `,
-          [value, commentId],
-        )
-      ).rows[0];
+    const comment = (
+      await this.database.query(
+        `
+            UPDATE comments
+            SET value = $1, updated_at = NOW() ${reply_uid ? `, reply_uid = '${reply_uid}'` : ''
+        }
+            WHERE id = $2
+            RETURNING *
+        `,
+        [value, commentId],
+      )
+    ).rows[0];
 
-      return await this.getCommenWithData(comment.id, current_uid);
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return await this.getCommenWithData(comment.id, current_uid);
   }
 
   async isAuthorComment({ commentId, current_uid }: IsAuthorDto) {
-    try {
-      const { user_uid, post_id } = (
-        await this.database.query(
-          `
-              SELECT user_uid, post_id
-              FROM comments
-              WHERE id = $1
-              LIMIT 1
-          `,
-          [commentId],
-        )
-      ).rows[0];
+    const { user_uid, post_id } = (
+      await this.database.query(
+        `
+            SELECT user_uid, post_id
+            FROM comments
+            WHERE id = $1
+            LIMIT 1
+        `,
+        [commentId],
+      )
+    ).rows[0];
 
-      if (user_uid !== current_uid) {
-        try {
-          await this.postService.isAuthor({ current_uid, postId: post_id });
-        } catch {
-          const errObj: IResponseFail = {
-            status: false,
-            message: 'У вас нету прав',
-          };
-          throw new HttpException(errObj, HttpStatus.FORBIDDEN);
-        }
+    if (user_uid !== current_uid) {
+      try {
+        await this.postService.isAuthor({ current_uid, postId: post_id });
+      } catch {
+        const errObj: IResponseFail = {
+          status: false,
+          message: 'У вас нету прав',
+        };
+        throw new HttpException(errObj, HttpStatus.FORBIDDEN);
       }
-
-      return true;
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
     }
+
+    return true;
   }
 
   async deleteComment({ commentId, current_uid }) {
-    try {
-      await this.isAuthorComment({ commentId, current_uid });
+    await this.isAuthorComment({ commentId, current_uid });
 
+    await this.database.query(
+      `
+            DELETE FROM comments
+            WHERE id = $1
+        `,
+      [commentId],
+    );
+
+    return true;
+  }
+
+  async getCommentsCount({ postId }: { postId: number }) {
+    return (
       await this.database.query(
         `
-              DELETE FROM comments
-              WHERE id = $1
-          `,
-        [commentId],
-      );
-
-      return true;
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+            SELECT COUNT(*)
+            FROM comments
+            INNER JOIN users ON comments.user_uid = users.uid
+            LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
+            WHERE comments.post_id = $1 AND comments.parent_id IS NULL
+        `,
+        [postId],
+      )
+    ).rows[0].count;
   }
 
   async getComments({
@@ -282,189 +262,190 @@ export class CommentService {
     limit?: number;
     offset?: number;
   }) {
-    try {
-      return (
-        await this.database.query(
-          `
-              SELECT comments.id, value, post_id, created_at, updated_at, parent_id,
-              json_build_object(
-                  'uid', users.uid,
-                  'name', users.name,
-                  'nickname', users.nickname,
-                  'avatars', json_build_object(
-                      'small', user_avatar.small,
-                      'middle', user_avatar.middle,
-                      'large', user_avatar.large,
-                      'default_avatar', user_avatar.default_avatar
-                  )
-              ) as user,
-                  ${
-                    current_uid
-                      ? `
-                    json_build_object(
-                      'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
-                    ) as isLiked,
-                    `
-                      : ''
-                  }
+    const [comments, count] = await Promise.all([
+      this.database.query(
+        `
+            SELECT comments.id, value, post_id, created_at, updated_at, parent_id,
+            json_build_object(
+                'uid', users.uid,
+                'name', users.name,
+                'nickname', users.nickname,
+                'avatars', json_build_object(
+                    'small', user_avatar.small,
+                    'middle', user_avatar.middle,
+                    'large', user_avatar.large,
+                    'default_avatar', user_avatar.default_avatar
+                )
+            ) as user,
+                ${current_uid
+          ? `
+                  json_build_object(
+                    'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
+                  ) as isLiked,
+                  `
+          : ''
+        }
 
-                  ARRAY(
-                      SELECT json_build_object(
-                          'count', count(*),
-                          'value', value
-                      )
-                      FROM likes
-                      WHERE likes.comment_id = comments.id
-                      GROUP BY value, post_id
-                  ) as likes,
-
-                  (
+                ARRAY(
                     SELECT json_build_object(
-                      'uid', u.uid,
-                      'name', u.name,
-                      'nickname', u.nickname,
-                      'avatars', json_build_object(
-                          'small', uv.small,
-                          'middle', uv.middle,
-                          'large', uv.large,
-                          'default_avatar', uv.default_avatar
-                      )
+                        'count', count(*),
+                        'value', value
                     )
-                    FROM users u
-                    LEFT JOIN user_avatar uv ON uv.user_uid = u.uid
-                    WHERE reply_uid = u.uid
-                    LIMIT 1
-                  ) as "replyUser",
+                    FROM likes
+                    WHERE likes.comment_id = comments.id
+                    GROUP BY value, post_id
+                ) as likes,
 
-                  (SELECT COUNT(*)::integer FROM comments c WHERE c.parent_id = comments.id) as "countSubComments",
-                  COALESCE(
-                    ARRAY(
-                        SELECT
-                            json_build_object(
-                                'id', c.id,
-                                'user', json_build_object(
-                                  'uid', users.uid,
-                                  'nickname', users.nickname,
-                                  'name', users.name,
-                                  'avatars', json_build_object(
-                                      'small', user_avatar.small,
-                                      'middle', user_avatar.middle,
-                                      'large', user_avatar.large,
-                                      'default_avatar', user_avatar.default_avatar
-                                  )
-                                ),
-                                'post_id', c.post_id,
-                                'created_at', c.created_at,
-                                'updated_at',c.updated_at,
-                                'value', c.value,
-                                'likes', ARRAY(
-                                    SELECT json_build_object(
-                                        'count', count(*),
-                                        'value', value
-                                    )
-                                    FROM likes
-                                    WHERE likes.comment_id = c.id
-                                    GROUP BY value, post_id
-                                ),
-                                ${
-                                  current_uid
-                                    ? `'isLiked',json_build_object(
-                                    'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
-                                  ),`
-                                    : ''
-                                }
+                (
+                  SELECT json_build_object(
+                    'uid', u.uid,
+                    'name', u.name,
+                    'nickname', u.nickname,
+                    'avatars', json_build_object(
+                        'small', uv.small,
+                        'middle', uv.middle,
+                        'large', uv.large,
+                        'default_avatar', uv.default_avatar
+                    )
+                  )
+                  FROM users u
+                  LEFT JOIN user_avatar uv ON uv.user_uid = u.uid
+                  WHERE reply_uid = u.uid
+                  LIMIT 1
+                ) as "replyUser",
 
-                                'replyUser', (
-                                  SELECT json_build_object(
-                                    'uid', u.uid,
-                                    'name', u.name,
-                                    'nickname', u.nickname,
-                                    'avatars', json_build_object(
-                                        'small', uv.small,
-                                        'middle', uv.middle,
-                                        'large', uv.large,
-                                        'default_avatar', uv.default_avatar
-                                    )
-                                  )
-                                  FROM users u
-                                  LEFT JOIN user_avatar uv ON uv.user_uid = u.uid
-                                  WHERE reply_uid = u.uid
-                                  LIMIT 1
+                (SELECT COUNT(*)::integer FROM comments c WHERE c.parent_id = comments.id) as "countSubComments",
+                COALESCE(
+                  ARRAY(
+                      SELECT
+                          json_build_object(
+                              'id', c.id,
+                              'user', json_build_object(
+                                'uid', users.uid,
+                                'nickname', users.nickname,
+                                'name', users.name,
+                                'avatars', json_build_object(
+                                    'small', user_avatar.small,
+                                    'middle', user_avatar.middle,
+                                    'large', user_avatar.large,
+                                    'default_avatar', user_avatar.default_avatar
                                 )
-                            )
-                        FROM comments c
-                        INNER JOIN users ON c.user_uid = users.uid
-                        LEFT JOIN user_avatar ON user_avatar.user_uid = c.user_uid
-                        WHERE c.parent_id = comments.id
-                        ORDER BY c.created_at DESC
-                        LIMIT 5
-                    ) ,
-                    '{}'
-                ) as "subComments"
+                              ),
+                              'post_id', c.post_id,
+                              'created_at', c.created_at,
+                              'updated_at',c.updated_at,
+                              'value', c.value,
+                              'likes', ARRAY(
+                                  SELECT json_build_object(
+                                      'count', count(*),
+                                      'value', value
+                                  )
+                                  FROM likes
+                                  WHERE likes.comment_id = c.id
+                                  GROUP BY value, post_id
+                              ),
+                              ${current_uid
+          ? `'isLiked',json_build_object(
+                                  'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
+                                ),`
+          : ''
+        }
+
+                              'replyUser', (
+                                SELECT json_build_object(
+                                  'uid', u.uid,
+                                  'name', u.name,
+                                  'nickname', u.nickname,
+                                  'avatars', json_build_object(
+                                      'small', uv.small,
+                                      'middle', uv.middle,
+                                      'large', uv.large,
+                                      'default_avatar', uv.default_avatar
+                                  )
+                                )
+                                FROM users u
+                                LEFT JOIN user_avatar uv ON uv.user_uid = u.uid
+                                WHERE reply_uid = u.uid
+                                LIMIT 1
+                              )
+                          )
+                      FROM comments c
+                      INNER JOIN users ON c.user_uid = users.uid
+                      LEFT JOIN user_avatar ON user_avatar.user_uid = c.user_uid
+                      WHERE c.parent_id = comments.id
+                      ORDER BY c.created_at DESC
+                      LIMIT 5
+                  ) ,
+                  '{}'
+              ) as "subComments"
 
 
-              FROM comments
-              INNER JOIN users ON comments.user_uid = users.uid
-              LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
-              WHERE comments.post_id = $1 AND comments.parent_id IS NULL
-              ORDER BY comments.created_at DESC
-              LIMIT $2
-              OFFSET $3
-          `,
-          [postId, limit, offset],
-        )
-      ).rows;
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
+            FROM comments
+            INNER JOIN users ON comments.user_uid = users.uid
+            LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
+            WHERE comments.post_id = $1 AND comments.parent_id IS NULL
+            ORDER BY comments.created_at DESC
+            LIMIT $2
+            OFFSET $3
+        `,
+        [postId, limit, offset],
+      ),
+      this.getCommentsCount({ postId })
+    ])
+
+    return {
+      comments: comments.rows,
+      count
     }
   }
 
   async getCommentId(id: number) {
-    try {
-      return (
-        await this.database.query(
-          `
-              SELECT id FROM
-              comments
-              WHERE comments.id = $1
-              LIMIT 1
-          `,
-          [id],
-        )
-      ).rows[0];
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return (
+      await this.database.query(
+        `
+            SELECT id FROM
+            comments
+            WHERE comments.id = $1
+            LIMIT 1
+        `,
+        [id],
+      )
+    ).rows[0];
   }
 
   async getCommentById(id: number) {
-    try {
-      return (
-        await this.database.query(
-          `
-              SELECT * FROM
-              comments
-              WHERE comments.id = $1
-              LIMIT 1
-          `,
-          [id],
-        )
-      ).rows[0];
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
-    }
+    return (
+      await this.database.query(
+        `
+            SELECT * FROM
+            comments
+            WHERE comments.id = $1
+            LIMIT 1
+        `,
+        [id],
+      )
+    ).rows[0];
+  }
+
+  async getSubCommentsCount({
+    commentId
+  }: {
+    commentId: number
+  }) {
+    return (
+      await this.database.query(
+        `
+            SELECT 
+              COUNT(*)
+            FROM comments
+            INNER JOIN users ON comments.user_uid = users.uid
+            LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
+            WHERE comments.parent_id = $1
+
+        `,
+        [commentId],
+      )
+    ).rows[0].count;
   }
 
   async getSubComments({
@@ -478,79 +459,76 @@ export class CommentService {
     limit?: number;
     offset?: number;
   }) {
-    try {
-      return (
-        await this.database.query(
-          `
-              SELECT comments.id, value, post_id, created_at, updated_at, parent_id,
+    const [subComments, count] = await Promise.all([
+      this.database.query(
+        `
+            SELECT comments.id, value, post_id, created_at, updated_at, parent_id,
+            json_build_object(
+                'uid', users.uid,
+                'name', users.name,
+                'nickname', users.nickname,
+                'avatars', json_build_object(
+                    'small', user_avatar.small,
+                    'middle', user_avatar.middle,
+                    'large', user_avatar.large,
+                    'default_avatar', user_avatar.default_avatar
+                )
+            ) as user,
+            ${current_uid
+          ? `
               json_build_object(
-                  'uid', users.uid,
-                  'name', users.name,
-                  'nickname', users.nickname,
-                  'avatars', json_build_object(
-                      'small', user_avatar.small,
-                      'middle', user_avatar.middle,
-                      'large', user_avatar.large,
-                      'default_avatar', user_avatar.default_avatar
-                  )
-              ) as user,
-              ${
-                current_uid
-                  ? `
+                'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
+              ) as isLiked,
+              `
+          : ''
+        }
+            ARRAY(
+                SELECT json_build_object(
+                    'count', count(*),
+                    'value', value
+                )
+                FROM likes
+                WHERE likes.comment_id = comments.id
+                GROUP BY value, post_id
+            ) as likes,
+
+            (
+              SELECT 
+              
                 json_build_object(
-                  'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
-                ) as isLiked,
-                `
-                  : ''
-              }
-              ARRAY(
-                  SELECT json_build_object(
-                      'count', count(*),
-                      'value', value
+                  'uid', u.uid,
+                  'name', u.name,
+                  'nickname', u.nickname,
+                  'avatars', json_build_object(
+                      'small', uv.small,
+                      'middle', uv.middle,
+                      'large', uv.large,
+                      'default_avatar', uv.default_avatar
                   )
-                  FROM likes
-                  WHERE likes.comment_id = comments.id
-                  GROUP BY value, post_id
-              ) as likes,
+                )
 
-              (
-                SELECT 
-                
-                  json_build_object(
-                    'uid', u.uid,
-                    'name', u.name,
-                    'nickname', u.nickname,
-                    'avatars', json_build_object(
-                        'small', uv.small,
-                        'middle', uv.middle,
-                        'large', uv.large,
-                        'default_avatar', uv.default_avatar
-                    )
-                  )
+              FROM users u
+              LEFT JOIN user_avatar uv ON uv.user_uid = u.uid
+              WHERE reply_uid = u.uid
+              LIMIT 1
+            ) as "replyUser"
 
-                FROM users u
-                LEFT JOIN user_avatar uv ON uv.user_uid = u.uid
-                WHERE reply_uid = u.uid
-                LIMIT 1
-              ) as "replyUser"
+            FROM comments
+            INNER JOIN users ON comments.user_uid = users.uid
+            LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
+            WHERE comments.parent_id = $1
+            ORDER BY comments.created_at DESC
+            LIMIT $2
+            OFFSET $3
+        `,
+        [commentId, limit, offset],
+      ),
+      this.getSubCommentsCount({ commentId })
+    ])
 
-              FROM comments
-              INNER JOIN users ON comments.user_uid = users.uid
-              LEFT JOIN user_avatar ON user_avatar.user_uid = comments.user_uid
-              WHERE comments.parent_id = $1
-              ORDER BY comments.created_at DESC
-              LIMIT $2
-              OFFSET $3
-          `,
-          [commentId, limit, offset],
-        )
-      ).rows;
-    } catch (err) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: err.message,
-      };
-      throw new HttpException(errObj, err.status || 500);
+    return {
+      subComments: subComments.rows,
+      count
     }
   }
 }

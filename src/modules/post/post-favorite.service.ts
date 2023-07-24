@@ -101,13 +101,28 @@ export class PostFavoriteService {
     }
   }
 
+  async getMyFavoriteProjectsCount(current_uid: string) {
+    return (
+      await this.database.query(
+      `
+        SELECT 
+          COUNT(*)
+        FROM posts
+        INNER JOIN user_post_favorite ON posts.id = user_post_favorite.post_id AND user_post_favorite.user_uid = '${current_uid}'
+        INNER JOIN pets ON pets.id = posts.pet_id
+      `,
+        [],
+      )
+    ).rows[0].count;
+  }
+
   async getMyFavoriteProjects({
     current_uid,
     limit = 20,
     offset = 0,
   }: GetMyFavoriteProjectsDTO) {
-    return (
-      await this.database.query(
+    const [projects, count] = await Promise.all([
+      this.database.query(
         `
                   SELECT 
                       posts.id as id, 
@@ -184,8 +199,14 @@ export class PostFavoriteService {
                   LIMIT $1
                   OFFSET $2
               `,
-        [limit, offset],
-      )
-    ).rows;
+        [limit, offset]
+      ),
+      this.getMyFavoriteProjectsCount(current_uid)
+    ])
+
+    return {
+      projects: projects.rows,
+      count
+    }
   }
 }

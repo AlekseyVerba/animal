@@ -3,6 +3,9 @@ import { Module, forwardRef } from "@nestjs/common";
 //SERVICES
 import { ChatService } from './chat.service'
 
+//GATEWAYS
+import { ChatGateway } from './chat.gateway'
+
 //CONTROLLERS
 import { ChatController } from './chat.controller'
 
@@ -13,10 +16,12 @@ import { IsMessageExistConstraint } from '../../validations/messageExists.valida
 import { FileModule } from '../file/file.module'
 import { AppModule } from "src/app.module";
 import { UserModule } from '../user/user.module'
+import { AuthModule } from '../auth/auth.module'
 
 @Module({
-    imports: [forwardRef(() => AppModule),FileModule, UserModule],
+    imports: [forwardRef(() => AppModule),FileModule, UserModule, AuthModule],
     controllers: [ChatController],
-    providers: [ChatService, IsMessageExistConstraint]
+    providers: [ChatService, IsMessageExistConstraint, ChatGateway],
+    exports: [ChatGateway]
 })
 export class ChatModule {}
