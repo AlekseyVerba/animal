@@ -27,7 +27,7 @@ jobs:
           cd /root/animal
           git pull origin master
           npx sequelize db:migrate
-          npm i
+          npm i --legacy-peer-deps
           npm run build
 
           pm2 delete main -s  || :
