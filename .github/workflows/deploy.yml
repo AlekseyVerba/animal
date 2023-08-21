@@ -30,7 +30,7 @@ jobs:
         with:
           string: ${{ github.repository_owner }}
       - id: step2
-        run: echo ${{ steps.string.outputs.lowercase }}
+        run: echo ${{ steps }}
 
       - name: "Build&Deploy template-server"
         uses: docker/build-push-action@v2
