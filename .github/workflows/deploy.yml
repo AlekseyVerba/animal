@@ -37,7 +37,7 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ steps.string.outputs.lowercase }}/animal:latest
+            ghcr.io/${{ steps.owner_to_lower_case_owner.outputs.lowercase }}/animal:latest
 
       - name: "Run deploy on server"
         uses: appleboy/ssh-action@master
