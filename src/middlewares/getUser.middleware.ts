@@ -1,7 +1,6 @@
 import { NestMiddleware, Injectable } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
-import { JWT_SECRET } from '../constants/keys';
 import { IUserForToken } from '../types/user';
 
 @Injectable()
@@ -21,7 +20,7 @@ export class GetUser implements NestMiddleware {
     }
 
     try {
-      const user = verify(token, JWT_SECRET);
+      const user = verify(token, process.env.JWT_SECRET);
 
       req.user = user as IUserForToken;
     } catch (e) {

@@ -8,8 +8,8 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
-    .setTitle('Iogru')
-    .setDescription('IogruAPI')
+    .setTitle('Тяу Тяу')
+    .setDescription('Тяу Тяу')
     .setVersion('0.0.1')
     .addBearerAuth(
       {

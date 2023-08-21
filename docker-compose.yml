@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  backend:
+    build: ./
+    restart: always
+    depends_on:
+      - pg
+    ports:
+      - "3001:3001"
+    environment:
+      POSTGRES_HOST: pg
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: sasafa12
+      POSTGRES_DB: project
+      DOMAIN: http://localhost:3000
+      PORT: 3001
+      JWT_SECRET: fgdf gdf gdf gt er tert er
+  pg:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: sasafa12
+      POSTGRES_DB: project
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+volumes:
+  pgdata:
+

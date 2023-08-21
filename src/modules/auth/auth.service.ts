@@ -19,7 +19,6 @@ import { RegistrationDto } from './dto/registration.dto';
 //INTERFACES
 import { USER_TOKEN_TYPE } from '../../types/user-token';
 import { DATABASE_POOL } from 'src/constants/database.constants';
-import { JWT_SECRET } from '../../constants/keys';
 import { IResponseFail } from '../../types/response/index.interface';
 
 //SERVICES
@@ -131,7 +130,7 @@ export class AuthService {
 
     const jwtToken = sign(
       { uid: candidate.uid, email: candidate.email },
-      JWT_SECRET,
+      process.env.JWT_SECRET,
     );
 
     return {
@@ -145,7 +144,10 @@ export class AuthService {
       token: code,
       email,
     });
-    const jwtToken = sign({ uid: user.uid, email: user.email }, JWT_SECRET);
+    const jwtToken = sign(
+      { uid: user.uid, email: user.email },
+      process.env.JWT_SECRET,
+    );
 
     return {
       user,
@@ -167,7 +169,7 @@ export class AuthService {
 
     const jwtToken = sign(
       { uid: candidate.uid, email: candidate.email },
-      JWT_SECRET,
+      process.env.JWT_SECRET,
     );
 
     return {
