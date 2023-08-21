@@ -29,10 +29,8 @@ jobs:
         uses: ASzc/change-string-case-action@v5
         with:
           string: ${{ github.repository_owner }}
-      - id: step2
-        run: echo ${{ steps.owner_to_lower_case_owner.outputs.lowercase }}
 
-      - name: "Build&Deploy template-server"
+      - name: "Build&Deploy backend"
         uses: docker/build-push-action@v2
         with:
           push: true
