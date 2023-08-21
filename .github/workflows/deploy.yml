@@ -40,9 +40,9 @@ jobs:
       - name: "Run deploy on server"
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
+          host: ${{ secrets.HOST_NEW }}
+          username: ${{ secrets.USERNAME_NEW }}
+          key: ${{ secrets.PRIVATE_KEY_NEW }}
           script: |
             sudo docker-compose -f docker-compose.yml pull
             sudo docker-compose -f docker-compose.yml up -d
