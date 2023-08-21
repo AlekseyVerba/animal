@@ -2,7 +2,7 @@ version: '3'
 
 services:
   backend:
-    build: ./
+    build: ghcr.io/alekseyverba/animal:latest
     restart: always
     depends_on:
       - pg
