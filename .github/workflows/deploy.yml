@@ -1,6 +1,9 @@
 name: 'build and deploy test server'
-push:
-  branches: [ master ]
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
 jobs:
   build:
     name: 'Build & Publish'
