@@ -14,5 +14,5 @@ export class DeleteLikeDto {
   commentId?: number;
 
   @IsOptional()
-  messageId?: number
+  messageId?: number;
 }

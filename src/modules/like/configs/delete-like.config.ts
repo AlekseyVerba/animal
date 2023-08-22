@@ -16,8 +16,8 @@ export const DeleteLikeApiBody: ApiBodyOptions = {
 
       messageId: {
         type: 'number',
-        required: ['false']
-      }
+        required: ['false'],
+      },
     },
   },
 };

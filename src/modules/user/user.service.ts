@@ -115,7 +115,7 @@ export class UserService {
   }
 
   async getUserByEmail(email: string): Promise<IUser> {
-    console.log(this.database)
+    console.log(this.database);
 
     const User = (
       await this.database.query(

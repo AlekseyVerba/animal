@@ -16,6 +16,7 @@ import { DeleteMessageDTO } from './dto/delete-message.dto';
 import { GetMessagesDTO } from './dto/get-messages.dto';
 import { GetMessagesQuery } from './dto/get-messages.query';
 import { ReadMessagesDTO } from './dto/read-messages.dto';
+import { DeleteDialogDTO } from './dto/delete-dialog.dto';
 
 //SERVICES
 import { FileService } from '../file/file.service';
@@ -40,6 +41,20 @@ export class ChatService {
         [uid, partnerUid],
       )
     ).rows;
+  }
+
+  async deleteDialog({ uid, partnerUid }: DeleteDialogDTO) {
+    return await this.database.query(
+      `
+          UPDATE messages
+          SET 
+            deleted_partner = CASE WHEN partner_uid = $1 THEN NOW() ELSE deleted_partner END,
+            deleted_author = CASE WHEN author_uid = $1 THEN NOW() ELSE deleted_author END
+          WHERE
+            (partner_uid = $1 AND author_uid = $2) OR (author_uid = $1 AND partner_uid = $2);
+        `,
+      [uid, partnerUid],
+    );
   }
 
   async deleteMessage({ uid, id, partner = false }: DeleteMessageDTO) {
@@ -346,12 +361,12 @@ export class ChatService {
             (
                 SELECT MAX(id) as lastid
                 FROM  messages m
-                    WHERE
-                    (
-                        m.author_uid = $1
-                        OR 
-                        m.partner_uid = $1
-                    )
+                  WHERE
+                  (
+                      m.author_uid = $1 AND m.deleted_author IS NULL
+                      OR 
+                      m.partner_uid = $1 AND m.deleted_partner IS NULL
+                  )
                 GROUP BY 
                 CONCAT(
                     LEAST(m.author_uid, m.partner_uid),
@@ -402,9 +417,9 @@ export class ChatService {
                 FROM  messages m
                     WHERE
                     (
-                        m.author_uid = $1
+                        m.author_uid = $1 AND m.deleted_author IS NULL
                         OR 
-                        m.partner_uid = $1
+                        m.partner_uid = $1 AND m.deleted_partner IS NULL
                     )
                 GROUP BY 
                 CONCAT(

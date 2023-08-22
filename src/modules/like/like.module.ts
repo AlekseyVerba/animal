@@ -2,7 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 
 //MODULES
 import { AppModule } from 'src/app.module';
-import { ChatModule } from '../chat/chat.module'
+import { ChatModule } from '../chat/chat.module';
 
 //CONTROLLERS
 import { LikeController } from './like.controller';

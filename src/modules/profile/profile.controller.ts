@@ -27,19 +27,19 @@ import { GetProfilePetDto } from './dto/getProfilePet.dto';
 import { GetProfileUserDto } from './dto/getProfileUser.dto';
 import { GetFollowingUsersDto } from './dto/getFollowingUsers.dto';
 import { LimitOffsetDto } from './dto/limitOffset.dto';
-import { GetProfileFollowersDto } from './dto/getProfileFollowers.dto'
+import { GetProfileFollowersDto } from './dto/getProfileFollowers.dto';
 
 //PIPES
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 //CONFIGS
-import { getProfileFollowersApiBody } from './configs/getProfileFollowers.config'
+import { getProfileFollowersApiBody } from './configs/getProfileFollowers.config';
 
 @ApiTags('Profile')
 @UsePipes(new ValidationPipe())
 @Controller('profile')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) { }
+  constructor(private readonly profileService: ProfileService) {}
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Follow to user' })
@@ -236,13 +236,13 @@ export class ProfileController {
   async getProfileFollowers(
     @UserProperty('uid') current_uid: string,
     @Body() dto: GetProfileFollowersDto,
-    @Query() query: LimitOffsetDto
+    @Query() query: LimitOffsetDto,
   ) {
-    dto.uid = current_uid
+    dto.uid = current_uid;
 
     return {
       status: true,
-      data: await this.profileService.getProfileFollowers(dto, query)
-    }
+      data: await this.profileService.getProfileFollowers(dto, query),
+    };
   }
 }

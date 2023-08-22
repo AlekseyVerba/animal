@@ -39,7 +39,7 @@ import { CommentIdParam } from '../comment/dto/commentId.param';
 export class LikeController {
   constructor(
     private readonly likeService: LikeService,
-    private readonly chatGateway: ChatGateway
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   @UseGuards(AuthGuard)
@@ -51,10 +51,10 @@ export class LikeController {
     @Body() dto: AddLikeDto,
   ) {
     dto.current_uid = current_uid;
-    const message = await this.likeService.addLike(dto)
+    const message = await this.likeService.addLike(dto);
 
     if (message.message_id) {
-      this.chatGateway.addLike(message.id)
+      this.chatGateway.addLike(message.id);
     }
 
     return {
@@ -76,7 +76,7 @@ export class LikeController {
     const like = await this.likeService.deleteLike(dto);
 
     if (like.message_id) {
-      this.chatGateway.deleteLike(like)
+      this.chatGateway.deleteLike(like);
     }
 
     return {
@@ -94,10 +94,10 @@ export class LikeController {
     @Body() dto: UpdateLikeDto,
   ) {
     dto.current_uid = current_uid;
-    const like = await this.likeService.updateLike(dto)
+    const like = await this.likeService.updateLike(dto);
 
     if (like.message_id) {
-      this.chatGateway.updateLike(like.id)
+      this.chatGateway.updateLike(like.id);
     }
 
     return {

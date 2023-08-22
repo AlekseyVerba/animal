@@ -28,7 +28,7 @@ export class CommentService {
 
     private readonly userService: UserService,
     private readonly postService: PostService,
-  ) { }
+  ) {}
 
   async addCommentToProject({
     value,
@@ -79,14 +79,15 @@ export class CommentService {
                     'default_avatar', user_avatar.default_avatar
                 )
             ) as user,
-                ${current_uid
-          ? `
+                ${
+                  current_uid
+                    ? `
                   json_build_object(
                     'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
                   ) as isLiked,
                   `
-          : ''
-        }
+                    : ''
+                }
 
                 ARRAY(
                     SELECT json_build_object(
@@ -134,12 +135,13 @@ export class CommentService {
                                 )
                               ),
                               'value', c.value,
-                              ${current_uid
-          ? `'isLiked',json_build_object(
+                              ${
+                                current_uid
+                                  ? `'isLiked',json_build_object(
                                   'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
                                 ),`
-          : ''
-        }
+                                  : ''
+                              }
                               'likes', ARRAY(
                                   SELECT json_build_object(
                                       'count', count(*),
@@ -182,8 +184,9 @@ export class CommentService {
       await this.database.query(
         `
             UPDATE comments
-            SET value = $1, updated_at = NOW() ${reply_uid ? `, reply_uid = '${reply_uid}'` : ''
-        }
+            SET value = $1, updated_at = NOW() ${
+              reply_uid ? `, reply_uid = '${reply_uid}'` : ''
+            }
             WHERE id = $2
             RETURNING *
         `,
@@ -277,14 +280,15 @@ export class CommentService {
                     'default_avatar', user_avatar.default_avatar
                 )
             ) as user,
-                ${current_uid
-          ? `
+                ${
+                  current_uid
+                    ? `
                   json_build_object(
                     'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
                   ) as isLiked,
                   `
-          : ''
-        }
+                    : ''
+                }
 
                 ARRAY(
                     SELECT json_build_object(
@@ -344,12 +348,13 @@ export class CommentService {
                                   WHERE likes.comment_id = c.id
                                   GROUP BY value, post_id
                               ),
-                              ${current_uid
-          ? `'isLiked',json_build_object(
+                              ${
+                                current_uid
+                                  ? `'isLiked',json_build_object(
                                   'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = c.id AND user_uid = '${current_uid}')
                                 ),`
-          : ''
-        }
+                                  : ''
+                              }
 
                               'replyUser', (
                                 SELECT json_build_object(
@@ -390,13 +395,13 @@ export class CommentService {
         `,
         [postId, limit, offset],
       ),
-      this.getCommentsCount({ postId })
-    ])
+      this.getCommentsCount({ postId }),
+    ]);
 
     return {
       comments: comments.rows,
-      count
-    }
+      count,
+    };
   }
 
   async getCommentId(id: number) {
@@ -427,11 +432,7 @@ export class CommentService {
     ).rows[0];
   }
 
-  async getSubCommentsCount({
-    commentId
-  }: {
-    commentId: number
-  }) {
+  async getSubCommentsCount({ commentId }: { commentId: number }) {
     return (
       await this.database.query(
         `
@@ -474,14 +475,15 @@ export class CommentService {
                     'default_avatar', user_avatar.default_avatar
                 )
             ) as user,
-            ${current_uid
-          ? `
+            ${
+              current_uid
+                ? `
               json_build_object(
                 'value', (SELECT likes.value  FROM likes WHERE likes.comment_id = comments.id AND user_uid = '${current_uid}')
               ) as isLiked,
               `
-          : ''
-        }
+                : ''
+            }
             ARRAY(
                 SELECT json_build_object(
                     'count', count(*),
@@ -523,12 +525,12 @@ export class CommentService {
         `,
         [commentId, limit, offset],
       ),
-      this.getSubCommentsCount({ commentId })
-    ])
+      this.getSubCommentsCount({ commentId }),
+    ]);
 
     return {
       subComments: subComments.rows,
-      count
-    }
+      count,
+    };
   }
 }

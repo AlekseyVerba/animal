@@ -13,7 +13,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { DeletePostDto } from './dto/delete-post.dto';
 import { IsAuthorDto } from './dto/is-author.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
-import { GetLinePostsDto } from './dto/get-line-posts.dto'
+import { GetLinePostsDto } from './dto/get-line-posts.dto';
 import { IResponseFail } from 'src/types/response/index.interface';
 
 @Injectable()
@@ -63,7 +63,6 @@ export class PostService {
           : null;
       });
     }
-
 
     if (main_image) {
       main_image = body[main_image] || undefined;
@@ -116,7 +115,9 @@ export class PostService {
     await this.database.query(`
         INSERT INTO post_tag(post_id, tag_id) VALUES 
         ${values
-          .map((value) => '(' + `${value.post_id}` + ', ' + value.tag_id.id + ')')
+          .map(
+            (value) => '(' + `${value.post_id}` + ', ' + value.tag_id.id + ')',
+          )
           .join(', ')} 
     `);
   }
@@ -355,15 +356,15 @@ export class PostService {
             LIMIT $2
             OFFSET $3
         `,
-        [search, limit, offset]
+        [search, limit, offset],
       ),
-      this.getPostsCount({ pet_id, search, current_uid })
-    ])
+      this.getPostsCount({ pet_id, search, current_uid }),
+    ]);
 
     return {
       posts: posts.rows,
-      count
-    }
+      count,
+    };
   }
 
   async getLinePostsCount({ current_uid, order }: GetLinePostsDto) {
@@ -377,10 +378,8 @@ export class PostService {
             WHERE
               ${
                 order === 'from_users_and_pets'
-                ?
-                '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $1))'
-                :
-                `
+                  ? '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $1))'
+                  : `
                 (post_tag.tag_id IN (SELECT tag_id FROM user_tag WHERE user_uid = $1))
                   AND
                 (posts.id NOT IN (SELECT post_id FROM post_views WHERE user_uid = $1))
@@ -392,10 +391,16 @@ export class PostService {
     ).rows[0].count;
   }
 
-  async getLinePosts({ limit = 20, offset = 0, order = 'from_users_and_pets' , seenIdPosts ,current_uid }: GetLinePostsDto) {
-      const [posts, count] = await Promise.all([
-        this.database.query(
-          `
+  async getLinePosts({
+    limit = 20,
+    offset = 0,
+    order = 'from_users_and_pets',
+    seenIdPosts,
+    current_uid,
+  }: GetLinePostsDto) {
+    const [posts, count] = await Promise.all([
+      this.database.query(
+        `
               SELECT 
                   posts.id as id, 
                   posts.title as title, 
@@ -465,32 +470,36 @@ export class PostService {
                 WHERE
                   ${
                     order === 'from_users_and_pets'
-                    ?
-                    '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $3))'
-                    :
-                    `
+                      ? '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $3))'
+                      : `
                     (post_tag.tag_id IN (SELECT tag_id FROM user_tag WHERE user_uid = $3))
                       AND
                     (posts.id NOT IN (SELECT post_id FROM post_views WHERE user_uid = $3))
                       AND
-                    (posts.id NOT IN (${seenIdPosts.map(id => id + '::int').join(', ')}))
+                    (posts.id NOT IN (${seenIdPosts
+                      .map((id) => id + '::int')
+                      .join(', ')}))
                     `
                   }
                   
               GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar
-              ORDER BY ${order === 'from_users_and_pets' ? 'posts.created_at DESC' : 'RANDOM()'}
+              ORDER BY ${
+                order === 'from_users_and_pets'
+                  ? 'posts.created_at DESC'
+                  : 'RANDOM()'
+              }
               LIMIT $1
               OFFSET $2
           `,
-          [limit, offset, current_uid],
-        ),
-        this.getLinePostsCount({ current_uid, order, seenIdPosts })
-      ])
+        [limit, offset, current_uid],
+      ),
+      this.getLinePostsCount({ current_uid, order, seenIdPosts }),
+    ]);
 
-      return {
-        posts: posts.rows,
-        count
-      }
+    return {
+      posts: posts.rows,
+      count,
+    };
   }
 
   async getPost({

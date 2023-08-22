@@ -61,11 +61,10 @@ export class TagService {
           `,
         [uid, tag_id],
       )
-    ).rows[0]
+    ).rows[0];
   }
 
   async addTagToUser({ uid, tag_id }: AddTagToUserDto) {
-
     if (await this.hasUserTag({ uid, tag_id })) {
       const errObj: IResponseFail = {
         status: false,

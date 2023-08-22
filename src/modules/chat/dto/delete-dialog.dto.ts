@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmpty } from 'class-validator';
+import { IsBoolean, IsEmpty, IsOptional } from 'class-validator';
 import { IsUserExist } from 'src/validations/userExists.validation';
 
-export class GetMessagesDTO {
+export class DeleteDialogDTO {
   @ApiProperty({
     name: 'partnerUid',
     type: String,

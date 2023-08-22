@@ -30,8 +30,8 @@ export const AddLikeApiBody: ApiBodyOptions = {
 
       messageId: {
         type: 'number',
-        required: ['false']
-      }
+        required: ['false'],
+      },
     },
   },
 };

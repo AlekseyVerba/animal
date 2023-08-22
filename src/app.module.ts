@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 
 //CONSTANTS
-import { PATH_FILE_STATIC } from './constants/path-file-static.constant'
+import { PATH_FILE_STATIC } from './constants/path-file-static.constant';
 
 //MIDDLEWARES
 import { GetUser } from './middlewares/getUser.middleware';
@@ -25,7 +25,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { PostModule } from './modules/post/post.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { LikeModule } from './modules/like/like.module';
-import { ChatModule } from './modules/chat/chat.module'
+import { ChatModule } from './modules/chat/chat.module';
 
 //CONSTANTS
 import { DATABASE_POOL } from './constants/database.constants';
@@ -46,7 +46,7 @@ import { DATABASE_POOL } from './constants/database.constants';
     PostModule,
     CommentModule,
     LikeModule,
-    ChatModule
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [

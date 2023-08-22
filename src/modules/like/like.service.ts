@@ -17,7 +17,7 @@ export class LikeService {
   constructor(
     @Inject(DATABASE_POOL)
     private readonly database: Pool,
-  ) { }
+  ) {}
 
   async isAddedById({ likeId, current_uid }: IsAddedByIdDto) {
     const like = (
@@ -61,7 +61,13 @@ export class LikeService {
     return !!like;
   }
 
-  async addLike({ value, commentId, postId, messageId, current_uid }: AddLikeDto) {
+  async addLike({
+    value,
+    commentId,
+    postId,
+    messageId,
+    current_uid,
+  }: AddLikeDto) {
     const like = await this.isAddedByCommentAndPost({
       commentId,
       postId,
@@ -89,7 +95,12 @@ export class LikeService {
     ).rows[0];
   }
 
-  async deleteLike({ commentId, postId, current_uid, messageId }: DeleteLikeDto) {
+  async deleteLike({
+    commentId,
+    postId,
+    current_uid,
+    messageId,
+  }: DeleteLikeDto) {
     const like = await this.isAddedByCommentAndPost({
       current_uid,
       commentId,
@@ -105,8 +116,9 @@ export class LikeService {
       throw new HttpException(errObj, HttpStatus.FORBIDDEN);
     }
 
-    const message = (await this.database.query(
-      `
+    const message = (
+      await this.database.query(
+        `
             DELETE FROM likes
             WHERE (
               (comment_id = $1 AND post_id IS NULL AND message_id IS NULL) 
@@ -117,13 +129,20 @@ export class LikeService {
             ) AND user_uid = $4
             RETURNING *
         `,
-      [commentId, postId, messageId, current_uid],
-    )).rows[0]
+        [commentId, postId, messageId, current_uid],
+      )
+    ).rows[0];
 
     return message;
   }
 
-  async updateLike({ current_uid, postId, messageId, value, commentId }: UpdateLikeDto) {
+  async updateLike({
+    current_uid,
+    postId,
+    messageId,
+    value,
+    commentId,
+  }: UpdateLikeDto) {
     const like = await this.isAddedByCommentAndPost({
       commentId,
       postId,
@@ -243,13 +262,13 @@ export class LikeService {
         `,
         [postId, commentId, messageId, limit, offset, sort],
       ),
-      this.getLikesCount({ postId, commentId, messageId, sort })
-    ])
+      this.getLikesCount({ postId, commentId, messageId, sort }),
+    ]);
 
     return {
       likes: likes.rows,
-      count
-    }
+      count,
+    };
   }
 
   async getLike(id: number) {

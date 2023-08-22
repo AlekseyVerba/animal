@@ -22,7 +22,7 @@ export class AddLikeDto {
   postId?: number;
 
   @IsOptional()
-  messageId?: number
+  messageId?: number;
 
   current_uid: string;
 }

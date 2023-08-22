@@ -8,7 +8,7 @@ import { AppModule } from 'src/app.module';
 
 //SERVICES
 import { AuthService } from './auth.service';
-import { AuthSocketService } from './auth-socket.service'
+import { AuthSocketService } from './auth-socket.service';
 
 //CONTROLLERS
 import { AuthController } from './auth.controller';
@@ -34,8 +34,8 @@ import { IsTokenExistsAndActiveConstraint } from 'src/validations/tokenExistsAnd
     IsUserExistConstraint,
     IsUserExistByEmailConstraint,
     IsTokenExistsAndActiveConstraint,
-    AuthSocketService
+    AuthSocketService,
   ],
-  exports: [AuthSocketService]
+  exports: [AuthSocketService],
 })
 export class AuthModule {}

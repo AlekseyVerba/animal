@@ -12,7 +12,7 @@ import { IResponseFail } from 'src/types/response/index.interface';
 import { FollowAndUnfollowProfileDto } from './dto/followAndUnfollowProfile';
 import { GetFollowingUsersDto } from './dto/getFollowingUsers.dto';
 import { LimitOffsetDto } from './dto/limitOffset.dto';
-import { GetProfileFollowersDto } from './dto/getProfileFollowers.dto'
+import { GetProfileFollowersDto } from './dto/getProfileFollowers.dto';
 
 @Injectable()
 export class ProfileService {
@@ -30,7 +30,7 @@ export class ProfileService {
   constructor(
     @Inject(DATABASE_POOL)
     private readonly database: Pool,
-  ) { }
+  ) {}
 
   async followToProfile({
     current_uid,
@@ -354,13 +354,13 @@ export class ProfileService {
           `,
         [user_uid, uid, limit, offset],
       ),
-      this.getFollowingUsersCount({ uid, user_uid })
-    ])
+      this.getFollowingUsersCount({ uid, user_uid }),
+    ]);
 
     return {
       users: users.rows,
-      count
-    }
+      count,
+    };
   }
 
   async getFollowingPetsCount({ user_uid }: GetFollowingUsersDto) {
@@ -408,45 +408,58 @@ export class ProfileService {
           `,
         [user_uid, uid, limit, offset],
       ),
-      this.getFollowingPetsCount({ uid, user_uid })
-    ])
+      this.getFollowingPetsCount({ uid, user_uid }),
+    ]);
 
     return {
       pets: pets.rows,
-      count
-    }
+      count,
+    };
   }
 
-  async getProfileFollowersCount({ user_uid, pet_id, uid }: GetProfileFollowersDto) {
-    let queryResult
+  async getProfileFollowersCount({
+    user_uid,
+    pet_id,
+    uid,
+  }: GetProfileFollowersDto) {
+    let queryResult;
 
     if (user_uid) {
-      queryResult = await this.database.query(`
+      queryResult = await this.database.query(
+        `
         SELECT COUNT(*)
         FROM users
         INNER JOIN user_user_followers ON users.uid = user_user_followers.follower_uid
         LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
         WHERE user_user_followers.user_uid = $1
-      `, [user_uid])
+      `,
+        [user_uid],
+      );
     } else {
-      queryResult = await this.database.query(`
+      queryResult = await this.database.query(
+        `
         SELECT COUNT(*)
         FROM users
         INNER JOIN user_pet_followers ON users.uid = user_pet_followers.follower_uid
         LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
         WHERE user_pet_followers.pet_id = $1
-      `, [pet_id])
+      `,
+        [pet_id],
+      );
     }
 
-    return queryResult.rows[0].count
+    return queryResult.rows[0].count;
   }
 
-  async getProfileFollowers({ user_uid, pet_id, uid }: GetProfileFollowersDto, { limit = 20, offset = 0 }: LimitOffsetDto) {
-
-    let queryResult
+  async getProfileFollowers(
+    { user_uid, pet_id, uid }: GetProfileFollowersDto,
+    { limit = 20, offset = 0 }: LimitOffsetDto,
+  ) {
+    let queryResult;
 
     if (user_uid) {
-      queryResult = await this.database.query(`
+      queryResult = await this.database.query(
+        `
         SELECT uid, name, nickname,
           json_build_object(
               'small',user_avatar.small,
@@ -465,9 +478,12 @@ export class ProfileService {
         ORDER BY user_user_followers.created DESC
         LIMIT $3
         OFFSET $4
-      `, [user_uid, uid, limit, offset])
+      `,
+        [user_uid, uid, limit, offset],
+      );
     } else {
-      queryResult = await this.database.query(`
+      queryResult = await this.database.query(
+        `
         SELECT uid, name, nickname,
           json_build_object(
               'small',user_avatar.small,
@@ -486,12 +502,14 @@ export class ProfileService {
         ORDER BY user_pet_followers.created DESC
         LIMIT $3
         OFFSET $4
-      `, [pet_id, uid, limit, offset])
+      `,
+        [pet_id, uid, limit, offset],
+      );
     }
 
     return {
       followers: queryResult.rows,
-      count: await this.getProfileFollowersCount({ user_uid, pet_id, uid })
-    }
+      count: await this.getProfileFollowersCount({ user_uid, pet_id, uid }),
+    };
   }
 }

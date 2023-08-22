@@ -22,5 +22,5 @@ export class UpdateLikeDto {
   commentId?: number;
 
   @IsOptional()
-  messageId?: number
+  messageId?: number;
 }

@@ -104,7 +104,7 @@ export class PostFavoriteService {
   async getMyFavoriteProjectsCount(current_uid: string) {
     return (
       await this.database.query(
-      `
+        `
         SELECT 
           COUNT(*)
         FROM posts
@@ -199,14 +199,14 @@ export class PostFavoriteService {
                   LIMIT $1
                   OFFSET $2
               `,
-        [limit, offset]
+        [limit, offset],
       ),
-      this.getMyFavoriteProjectsCount(current_uid)
-    ])
+      this.getMyFavoriteProjectsCount(current_uid),
+    ]);
 
     return {
       projects: projects.rows,
-      count
-    }
+      count,
+    };
   }
 }
