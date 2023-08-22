@@ -11,6 +11,9 @@ import { IResponseFail } from 'src/types/response/index.interface';
 
 import * as sharp from 'sharp';
 
+//CONSTANTS
+import { PATH_FILE_STATIC } from '../../constants/path-file-static.constant';
+
 @Injectable()
 export class FileService {
   async createResizedImage(
@@ -31,21 +34,11 @@ export class FileService {
       const newNameFile = v4();
 
       return (
-        (await sharp(
-          `${join(__dirname, '..', '..', '..', 'assets')}/${file.fullPath}`,
-        )
+        (await sharp(`${PATH_FILE_STATIC}/${file.fullPath}`)
           .jpeg({ quality })
           .resize(resizeOptions)
           .toFile(
-            join(
-              __dirname,
-              '..',
-              '..',
-              '..',
-              'assets',
-              file.nameDir,
-              newNameFile + '.jpg',
-            ),
+            join(PATH_FILE_STATIC, file.nameDir, newNameFile + '.jpg'),
             (err, inf) => {
               console.log(err);
               console.log(inf);
@@ -75,20 +68,10 @@ export class FileService {
       const newNameFile = v4();
 
       return (
-        (await sharp(
-          `${join(__dirname, '..', '..', '..', 'assets')}/${file.fullPath}`,
-        )
+        (await sharp(`${PATH_FILE_STATIC}/${file.fullPath}`)
           .jpeg({ quality })
           .toFile(
-            join(
-              __dirname,
-              '..',
-              '..',
-              '..',
-              'assets',
-              file.nameDir,
-              newNameFile + '.jpg',
-            ),
+            join(PATH_FILE_STATIC, file.nameDir, newNameFile + '.jpg'),
             (err, inf) => {
               console.log(err);
               console.log(inf);
@@ -106,16 +89,16 @@ export class FileService {
   }
 
   isImage(type: string) {
-    return ['svg', 'jpeg', 'jpg', 'png', 'webp'].includes(type)
+    return ['svg', 'jpeg', 'jpg', 'png', 'webp'].includes(type);
   }
 
   getTypeOfFile(file: Express.Multer.File) {
-    return file.originalname.split('.').slice(-1).pop()
+    return file.originalname.split('.').slice(-1).pop();
   }
 
   createFile(file: Express.Multer.File, nameDir: string) {
     const typeFile = this.getTypeOfFile(file);
-    const pathDir = join(__dirname, '..', '..', '..', 'assets', nameDir);
+    const pathDir = join(PATH_FILE_STATIC, nameDir);
 
     if (!fs.existsSync(pathDir)) {
       fs.mkdirSync(pathDir, { recursive: true });
@@ -145,13 +128,7 @@ export class FileService {
 
   async deleteFile(pathFile: string): Promise<boolean> {
     try {
-      const fullPath = `${join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'assets',
-      )}/${pathFile}`;
+      const fullPath = `${PATH_FILE_STATIC}/${pathFile}`;
       console.log(fullPath);
       if (!fs.existsSync(fullPath)) {
         const objError: IResponseFail = {

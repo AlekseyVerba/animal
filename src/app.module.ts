@@ -7,6 +7,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 
+//CONSTANTS
+import { PATH_FILE_STATIC } from './constants/path-file-static.constant'
+
 //MIDDLEWARES
 import { GetUser } from './middlewares/getUser.middleware';
 
@@ -29,6 +32,9 @@ import { DATABASE_POOL } from './constants/database.constants';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: PATH_FILE_STATIC,
+    }),
     UserModule,
     AuthModule,
     MessageModule,
