@@ -64,6 +64,7 @@ export class PostService {
       });
     }
 
+
     if (main_image) {
       main_image = body[main_image] || undefined;
     }
