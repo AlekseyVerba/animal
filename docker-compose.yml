@@ -9,14 +9,14 @@ services:
     ports:
       - "3001:3001"
     env_file:
-      - .env
+      - ../.env
     volumes:
       - staticfiles:/app/static
   pg:
     image: postgres
     restart: always
     env_file:
-      - db.env
+      - ../db.env
     volumes:
       - pgdata:/var/lib/postgresql/data
   adminer:
