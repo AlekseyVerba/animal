@@ -7,7 +7,7 @@ services:
     depends_on:
       - pg
     ports:
-      - "3001:3001"
+      - "80:80"
     env_file:
       - ../.env
     volumes:
