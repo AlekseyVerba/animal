@@ -126,6 +126,11 @@ export class PostController {
     type: 'number',
     required: false,
   })
+  @ApiQuery({
+    name: 'user_uid',
+    type: 'string',
+    required: false,
+  })
   @ApiOperation({ summary: 'Get posts' })
   @Get('all')
   async getPosts(

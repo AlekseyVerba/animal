@@ -109,7 +109,6 @@ export class PostFavoriteService {
           COUNT(*)
         FROM posts
         INNER JOIN user_post_favorite ON posts.id = user_post_favorite.post_id AND user_post_favorite.user_uid = '${current_uid}'
-        INNER JOIN pets ON pets.id = posts.pet_id
       `,
         [],
       )
@@ -131,7 +130,10 @@ export class PostFavoriteService {
                       posts.main_image as mainImage,
                       posts.created_at as createdAt, 
                       posts.updated_at as updatedAt, 
-                      json_build_object(
+                      CASE 
+                      WHEN pets.id IS NOT NULL
+                        THEN json_build_object(
+                          'type', 'pet',
                           'id',pets.id,
                           'avatars',json_build_object(
                               'small',pet_avatar.small,
@@ -140,7 +142,19 @@ export class PostFavoriteService {
                               'default_avatar',pet_avatar.default_avatar
                           ),
                           'name',pets.name
-                      ) AS pet,
+                      )
+                      ELSE json_build_object(
+                        'type', 'user',
+                        'uid',users.uid,
+                        'avatars',json_build_object(
+                            'small',user_avatar.small,
+                            'middle',user_avatar.middle,
+                            'large',user_avatar.large,
+                            'default_avatar',user_avatar.default_avatar
+                        ),
+                        'name',users.name
+                    )
+                    END AS profile,
                       COALESCE(
                           ARRAY_AGG(
                               CASE WHEN tags.id IS NOT NULL THEN
@@ -190,11 +204,13 @@ export class PostFavoriteService {
                       ) as likes
                   FROM posts
                   INNER JOIN user_post_favorite ON posts.id = user_post_favorite.post_id AND user_post_favorite.user_uid = '${current_uid}'
-                  INNER JOIN pets ON pets.id = posts.pet_id
+                  LEFT JOIN pets ON pets.id = posts.pet_id
+                  LEFT JOIN users on users.uid = posts.user_uid
+                  LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
                   LEFT JOIN post_tag ON post_tag.post_id = posts.id
                   LEFT JOIN tags ON tags.id = post_tag.tag_id
                   LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
-                  GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar, user_post_favorite.created_at
+                  GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar, users.uid, user_avatar.small, user_avatar.middle, user_avatar.large, user_avatar.default_avatar, user_post_favorite.created_at
                   ORDER BY user_post_favorite.created_at 
                   LIMIT $1
                   OFFSET $2

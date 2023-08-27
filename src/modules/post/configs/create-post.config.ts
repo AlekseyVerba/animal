@@ -4,6 +4,8 @@ export const CreatePostApiBody: ApiBodyOptions = {
   schema: {
     type: 'object',
     description: `
+            Если не передаём id питомца, то пост будет создан для пользователя.
+
             В body разделение на части (фото и текст).
             Так же данный метод поддерживает загрузку файлов.
             Что бы добавить фото в body, нужно:
@@ -38,7 +40,7 @@ export const CreatePostApiBody: ApiBodyOptions = {
 
       pet_id: {
         type: 'number',
-        required: ['true'],
+        required: ['false'],
       },
 
       tags: {

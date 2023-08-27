@@ -19,6 +19,7 @@ export class CreatePostDto {
     [key: `${number}textImage`]: string;
   };
 
+  @IsOptional()
   @IsPetExist({ message: "Pet with id '$value' does not exist!" })
   pet_id: number;
 

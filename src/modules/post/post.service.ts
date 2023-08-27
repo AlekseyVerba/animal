@@ -34,24 +34,27 @@ export class PostService {
     files: Array<Express.Multer.File>,
     { body, pet_id, title, tags, current_uid, main_image }: CreatePostDto,
   ) {
-    const isMasterPet = (
-      await this.database.query(
-        `
-            SELECT * FROM pets
-            WHERE pets.id = $2 AND pets.user_uid = $1
-            LIMIT 1
-        `,
-        [current_uid, pet_id],
-      )
-    ).rows[0];
 
-    if (!isMasterPet) {
-      const errObj: IResponseFail = {
-        status: false,
-        message: 'Вы не владелец этого питомца',
-      };
-
-      throw new HttpException(errObj, HttpStatus.FORBIDDEN);
+    if (pet_id) {
+      const isMasterPet = (
+        await this.database.query(
+          `
+              SELECT * FROM pets
+              WHERE pets.id = $2 AND pets.user_uid = $1
+              LIMIT 1
+          `,
+          [current_uid, pet_id],
+        )
+      ).rows[0];
+  
+      if (!isMasterPet) {
+        const errObj: IResponseFail = {
+          status: false,
+          message: 'Вы не владелец этого питомца',
+        };
+  
+        throw new HttpException(errObj, HttpStatus.FORBIDDEN);
+      }
     }
 
     if (files) {
@@ -70,8 +73,8 @@ export class PostService {
 
     const post = (
       await this.database.query(
-        'INSERT INTO posts(title, body, pet_id, main_image) VALUES ($1, $2, $3, $4) RETURNING *',
-        [title, body, pet_id, main_image],
+        'INSERT INTO posts(title, body, pet_id, user_uid, main_image) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [title, body, pet_id, pet_id ? null : current_uid ,main_image],
       )
     ).rows[0];
 
@@ -103,12 +106,10 @@ export class PostService {
         }),
       );
 
-      console.log(existTags);
-
       await this.bulkCreatePostTags(existTags);
     }
 
-    return post;
+    return await this.getPost({ postId: post.id, current_uid });
   }
 
   async bulkCreatePostTags(values: { tag_id: any; post_id: number }[]) {
@@ -126,9 +127,9 @@ export class PostService {
     const post = (
       await this.database.query(
         `
-            SELECT posts.id,pet_id FROM posts
-            INNER JOIN pets ON pets.id = posts.pet_id
-            WHERE posts.id = $1 AND pets.user_uid = $2
+            SELECT posts.id,pet_id, user_uid FROM posts
+            LEFT JOIN pets ON pets.id = posts.pet_id
+            WHERE (posts.id = $1 AND pets.user_uid = $2) OR (posts.user_uid = $2)
             LIMIT 1
         `,
         [postId, current_uid],
@@ -223,16 +224,16 @@ export class PostService {
     return true;
   }
 
-  async getPostsCount({ pet_id, search }: GetPostsDto) {
+  async getPostsCount({ pet_id, user_uid ,search }: GetPostsDto) {
     return (
       await this.database.query(
         `
             SELECT 
               COUNT(*)
             FROM posts
+            LEFT JOIN pets ON pets.id = posts.pet_id
             LEFT JOIN post_tag ON post_tag.post_id = posts.id
             LEFT JOIN tags ON tags.id = post_tag.tag_id
-            INNER JOIN pets ON pets.id = posts.pet_id
             WHERE 
                 (
                     posts.title LIKE '%' || $1 || '%' 
@@ -244,7 +245,14 @@ export class PostService {
                     tags.name LIKE '%' || $1 || '%'
                 )
                     
-                ${pet_id ? `AND posts.pet_id = ${pet_id}` : ''}
+                ${
+                  pet_id || user_uid 
+                    ? pet_id ? 
+                      `AND posts.pet_id = ${pet_id}`
+                      :
+                      `AND posts.user_uid = ${user_uid}`
+                    : ''
+                }
         `,
         [search],
       )
@@ -258,6 +266,7 @@ export class PostService {
     offset = 0,
     limit = 20,
     pet_id,
+    user_uid,
     current_uid,
   }: GetPostsDto) {
     let orderByText;
@@ -280,16 +289,31 @@ export class PostService {
                 posts.main_image as mainImage,
                 posts.created_at as createdAt, 
                 posts.updated_at as updatedAt, 
-                json_build_object(
-                    'id',pets.id,
-                    'avatars',json_build_object(
-                        'small',pet_avatar.small,
-                        'middle',pet_avatar.middle,
-                        'large',pet_avatar.large,
-                        'default_avatar',pet_avatar.default_avatar
-                    ),
-                    'name',pets.name
-                ) AS pet,
+                CASE 
+                  WHEN pets.id IS NOT NULL
+                    THEN json_build_object(
+                      'type','pet',
+                      'id',pets.id,
+                      'avatars',json_build_object(
+                          'small',pet_avatar.small,
+                          'middle',pet_avatar.middle,
+                          'large',pet_avatar.large,
+                          'default_avatar',pet_avatar.default_avatar
+                      ),
+                      'name',pets.name
+                  )
+                  ELSE json_build_object(
+                      'type', 'user',
+                      'uid',users.uid,
+                      'avatars',json_build_object(
+                          'small',user_avatar.small,
+                          'middle',user_avatar.middle,
+                          'large',user_avatar.large,
+                          'default_avatar',user_avatar.default_avatar
+                      ),
+                      'name',users.name
+                  )
+                END AS profile,
                 COALESCE(
                     ARRAY_AGG(
                         CASE WHEN tags.id IS NOT NULL THEN
@@ -318,7 +342,7 @@ export class PostService {
                   END)
                   ) as isAddedToFavorite,
                 json_build_object(
-                  'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND user_uid = '${current_uid}')
+                  'value', (SELECT likes.value  FROM likes WHERE likes.post_id = posts.id AND likes.user_uid = '${current_uid}')
                 ) as isLiked,
             `
                     : ``
@@ -337,8 +361,10 @@ export class PostService {
             FROM posts
             LEFT JOIN post_tag ON post_tag.post_id = posts.id
             LEFT JOIN tags ON tags.id = post_tag.tag_id
-            INNER JOIN pets ON pets.id = posts.pet_id
+            LEFT JOIN pets ON pets.id = posts.pet_id
             LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
+            LEFT JOIN users on users.uid = posts.user_uid
+            LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
             WHERE 
                 (
                     posts.title LIKE '%' || $1 || '%' 
@@ -351,14 +377,25 @@ export class PostService {
                 )
                     
                 ${pet_id ? `AND posts.pet_id = ${pet_id}` : ''}
-            GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar
+
+                ${
+                  pet_id || user_uid 
+                    ? pet_id ? 
+                      `AND posts.pet_id = ${pet_id}`
+                      :
+                      `AND posts.user_uid = ${user_uid}`
+                    : ''
+                }
+
+            GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, 
+              pet_avatar.default_avatar, users.uid, user_avatar.small, user_avatar.middle, user_avatar.large, user_avatar.default_avatar
             ORDER BY ${orderByText} ${order}
             LIMIT $2
             OFFSET $3
         `,
         [search, limit, offset],
       ),
-      this.getPostsCount({ pet_id, search, current_uid }),
+      this.getPostsCount({ pet_id, search, current_uid, user_uid }),
     ]);
 
     return {
@@ -374,11 +411,18 @@ export class PostService {
             SELECT 
               COUNT(*)
             FROM posts
-            INNER JOIN pets ON pets.id = posts.pet_id
+            LEFT JOIN post_tag ON post_tag.post_id = posts.id
+            LEFT JOIN tags ON tags.id = post_tag.tag_id
+            LEFT JOIN pets ON pets.id = posts.pet_id
+            LEFT JOIN users ON users.uid = posts.user_uid
             WHERE
               ${
                 order === 'from_users_and_pets'
-                  ? '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $1))'
+                  ? `( 
+                    (pets.id IS NOT NULL AND pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $1))
+                    OR
+                    (users.uid IN (SELECT user_uid FROM user_user_followers WHERE follower_uid = $1))
+                    )`
                   : `
                 (post_tag.tag_id IN (SELECT tag_id FROM user_tag WHERE user_uid = $1))
                   AND
@@ -407,17 +451,32 @@ export class PostService {
                   posts.body as body,
                   posts.main_image as mainImage,
                   posts.created_at as createdAt, 
-                  posts.updated_at as updatedAt, 
-                  json_build_object(
-                      'id',pets.id,
-                      'avatars',json_build_object(
-                          'small',pet_avatar.small,
-                          'middle',pet_avatar.middle,
-                          'large',pet_avatar.large,
-                          'default_avatar',pet_avatar.default_avatar
-                      ),
-                      'name',pets.name
-                  ) AS pet,
+                  posts.updated_at as updatedAt,
+              CASE 
+              WHEN pets.id IS NOT NULL
+                THEN json_build_object(
+                  'type', 'pet',
+                  'id',pets.id,
+                  'avatars',json_build_object(
+                      'small',pet_avatar.small,
+                      'middle',pet_avatar.middle,
+                      'large',pet_avatar.large,
+                      'default_avatar',pet_avatar.default_avatar
+                  ),
+                  'name',pets.name
+              )
+              ELSE json_build_object(
+                'type', 'user',
+                'uid',users.uid,
+                'avatars',json_build_object(
+                    'small',user_avatar.small,
+                    'middle',user_avatar.middle,
+                    'large',user_avatar.large,
+                    'default_avatar',user_avatar.default_avatar
+                ),
+                'name',users.name
+            )
+            END AS profile,
                   COALESCE(
                       ARRAY_AGG(
                           CASE WHEN tags.id IS NOT NULL THEN
@@ -465,24 +524,29 @@ export class PostService {
               FROM posts
               LEFT JOIN post_tag ON post_tag.post_id = posts.id 
               LEFT JOIN tags ON tags.id = post_tag.tag_id
-              INNER JOIN pets ON pets.id = posts.pet_id
+              LEFT JOIN pets ON pets.id = posts.pet_id
               LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
+              LEFT JOIN users on users.uid = posts.user_uid
+              LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
                 WHERE
                   ${
                     order === 'from_users_and_pets'
-                      ? '(pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $3))'
+                      ? `( 
+                        (pets.id IS NOT NULL AND pets.id IN (SELECT pet_id FROM user_pet_followers WHERE follower_uid = $3))
+                        OR
+                        (users.uid IN (SELECT user_uid FROM user_user_followers WHERE follower_uid = $3))
+                        )`
                       : `
                     (post_tag.tag_id IN (SELECT tag_id FROM user_tag WHERE user_uid = $3))
                       AND
                     (posts.id NOT IN (SELECT post_id FROM post_views WHERE user_uid = $3))
-                      AND
-                    (posts.id NOT IN (${seenIdPosts
+                    ${seenIdPosts.length ? `AND (posts.id NOT IN (${seenIdPosts
                       .map((id) => id + '::int')
-                      .join(', ')}))
+                      .join(', ')}))` : ''}
                     `
                   }
                   
-              GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar
+              GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar, users.uid, user_avatar.small, user_avatar.middle, user_avatar.large, user_avatar.default_avatar
               ORDER BY ${
                 order === 'from_users_and_pets'
                   ? 'posts.created_at DESC'
@@ -493,7 +557,7 @@ export class PostService {
           `,
         [limit, offset, current_uid],
       ),
-      this.getLinePostsCount({ current_uid, order, seenIdPosts }),
+     this.getLinePostsCount({ current_uid, order, seenIdPosts })
     ]);
 
     return {
@@ -542,16 +606,31 @@ export class PostService {
             posts.main_image as mainImage,
             posts.created_at as createdAt, 
             posts.updated_at as updatedAt,
-            json_build_object(
-                'id',pets.id,
+            CASE 
+              WHEN pets.id IS NOT NULL
+                THEN json_build_object(
+                  'type', 'pet',
+                  'id',pets.id,
+                  'avatars',json_build_object(
+                      'small',pet_avatar.small,
+                      'middle',pet_avatar.middle,
+                      'large',pet_avatar.large,
+                      'default_avatar',pet_avatar.default_avatar
+                  ),
+                  'name',pets.name
+              )
+              ELSE json_build_object(
+                'type', 'user',
+                'uid',users.uid,
                 'avatars',json_build_object(
-                    'small',pet_avatar.small,
-                    'middle',pet_avatar.middle,
-                    'large',pet_avatar.large,
-                    'default_avatar',pet_avatar.default_avatar
+                    'small',user_avatar.small,
+                    'middle',user_avatar.middle,
+                    'large',user_avatar.large,
+                    'default_avatar',user_avatar.default_avatar
                 ),
-                'name',pets.name
-            ) AS pet,
+                'name',users.name
+            )
+            END AS profile,
             COALESCE(
                 ARRAY(
                     SELECT
@@ -643,10 +722,12 @@ export class PostService {
         FROM posts
         LEFT JOIN post_tag ON post_tag.post_id = posts.id
         LEFT JOIN tags ON tags.id = post_tag.tag_id
-        INNER JOIN pets ON pets.id = posts.pet_id
+        LEFT JOIN pets ON pets.id = posts.pet_id
         LEFT JOIN pet_avatar ON pets.id = pet_avatar.pet_id
+        LEFT JOIN users on users.uid = posts.user_uid
+        LEFT JOIN user_avatar ON users.uid = user_avatar.user_uid
         WHERE posts.id = $1
-        GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar    
+        GROUP BY posts.id, pets.id, pet_avatar.small, pet_avatar.middle, pet_avatar.large, pet_avatar.default_avatar, users.uid, user_avatar.small, user_avatar.middle, user_avatar.large, user_avatar.default_avatar 
         `,
         [postId, current_uid],
       )

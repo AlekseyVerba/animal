@@ -1,5 +1,6 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { IsPostExist } from 'src/validations/postExists.validation';
+import { IsPetExist } from 'src/validations/petExists.validation';
+import { IsUserExist } from 'src/validations/userExists.validation';
 
 export class GetPostsDto {
   @IsOptional()
@@ -22,8 +23,12 @@ export class GetPostsDto {
   search?: string;
 
   @IsOptional()
-  @IsPostExist()
+  @IsPetExist({ message: "Pet with id '$value' does not exist!" })
   pet_id?: number;
+
+  @IsOptional()
+  @IsUserExist({ message: "User with uid '$value' does not exist!" })
+  user_uid: string;
 
   current_uid: string;
 }
