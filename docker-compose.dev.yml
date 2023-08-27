@@ -2,7 +2,9 @@ version: '3'
 
 services:
   backend:
-    image: ghcr.io/alekseyverba/animal:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
     restart: always
     depends_on:
       - pg
@@ -11,6 +13,8 @@ services:
     env_file:
       - .env
     volumes:
+      - ./:/app
+      - /app/node_modules/
       - staticfiles:/app/static
   pg:
     image: postgres

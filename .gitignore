@@ -3,6 +3,8 @@
 /node_modules
 /assets
 /static
+.env
+db.env
 
 # Logs
 logs

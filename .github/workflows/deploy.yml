@@ -33,6 +33,8 @@ jobs:
       - name: "Build&Deploy backend"
         uses: docker/build-push-action@v2
         with:
+          context: .
+          file: ../../Dockerfile
           push: true
           tags: |
             ghcr.io/${{ steps.owner_to_lower_case_owner.outputs.lowercase }}/animal:latest
@@ -44,5 +46,8 @@ jobs:
           username: ${{ secrets.USERNAME_NEW }}
           key: ${{ secrets.PRIVATE_KEY_NEW }}
           script: |
+            cd animal_prod
+            git fetch --all
+            git checkout origin/master -- docker-compose.yml
             sudo docker-compose -f docker-compose.yml pull
             sudo docker-compose -f docker-compose.yml up -d

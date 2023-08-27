@@ -1,2 +1,10 @@
 node_modules
 dist
+static
+.env
+.github
+.eslintrc.js
+.gitignore
+.prettierrc
+.env
+db.env
