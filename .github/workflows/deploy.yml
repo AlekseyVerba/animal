@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ../../Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             ghcr.io/${{ steps.owner_to_lower_case_owner.outputs.lowercase }}/animal:latest
