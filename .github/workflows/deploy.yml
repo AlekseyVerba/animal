@@ -51,3 +51,4 @@ jobs:
             git checkout origin/master -- docker-compose.yml
             sudo docker-compose -f docker-compose.yml pull
             sudo docker-compose -f docker-compose.yml up -d
+            sudo docker rmi $(docker images -f dangling=true -q)
