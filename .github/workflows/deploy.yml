@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.USERNAME_NEW }}
           key: ${{ secrets.PRIVATE_KEY_NEW }}
           script: |
-            cd animal_prod
+            cd ./animal/prod
             git fetch --all
             git checkout origin/master -- docker-compose.yml
             sudo docker-compose -f docker-compose.yml pull
