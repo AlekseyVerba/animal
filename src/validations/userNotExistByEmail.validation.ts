@@ -18,7 +18,7 @@ export class IsUserNotExistByEmailConstraint
 
   async validate(userName: any, args: ValidationArguments) {
     return this.userService.getUserByEmail(userName).then((result) => {
-      return !result || !result.isActive;
+      return !result || !result.isActivate;
     });
   }
 }
