@@ -22,13 +22,13 @@ import { AddTagToUserApiBody } from './configs/addTagToUser.config';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 @UseGuards(AuthGuard)
-@ApiTags('Tag')
+@ApiTags('Тэг')
 @UsePipes(new ValidationPipe())
 @Controller('tag')
 export class TagController {
   constructor(private readonly tagService: TagService) {}
 
-  @ApiOperation({ summary: 'Get all parent tags' })
+  @ApiOperation({ summary: 'Получить все родительские тэги' })
   @Get('all-parent')
   async getAllParentTags() {
     const data = await this.tagService.getAllParentTags();
@@ -39,7 +39,7 @@ export class TagController {
     };
   }
 
-  @ApiOperation({ summary: 'Get all child tags from parent tag' })
+  @ApiOperation({ summary: 'Получить все дочерние тэги родительского тэга' })
   @Get(':parent_id/childs')
   async getAllChildsTagsFromParent(@Param('parent_id') parent_id: number) {
     const data = await this.tagService.getAllChildsTagsFromParent(parent_id);
@@ -50,7 +50,7 @@ export class TagController {
     };
   }
 
-  @ApiOperation({ summary: 'Add tag to user' })
+  @ApiOperation({ summary: 'Добавить тэг пользователю' })
   @ApiBody(AddTagToUserApiBody)
   @Post('add/user')
   async addTagToUser(

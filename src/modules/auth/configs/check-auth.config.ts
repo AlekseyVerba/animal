@@ -6,7 +6,7 @@ export const CheckAuthApiResponse: ApiResponseOptions = {
     type: 'object',
     example: {
       status: true,
-      message: 'User successfully verified',
+      message: 'Пользователь успешно верифицирован',
       data: {
         user: {
           uid: '4d58a734-efd1-4b6a-9ff6-70922bd6cd9a',

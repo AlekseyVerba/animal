@@ -1,13 +1,15 @@
 export class Messages {
   static registration(code: string): string {
     return `
-            Code for registration: ${code}
+            Код для регистрации: ${code}
+            (НЕОБХОДИМО СВЕРСТАТЬ ПОЧТОВЫЕ ФОРМЫ)
         `;
   }
 
   static rememberPassword(code: string): string {
     return `
-           <div>To change your password write this code '${code}'</div>
+           <div>Код для изменения пароля '${code}'</div>
+           (НЕОБХОДИМО СВЕРСТАТЬ ПОЧТОВЫЕ ФОРМЫ)
         `;
   }
 }

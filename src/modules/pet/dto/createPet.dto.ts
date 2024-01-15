@@ -10,20 +10,26 @@ import { TagExists } from 'src/validations/tagExists.validation';
 export class CreateAndUpdatePetDto {
   @IsEmpty()
   user_uid: string;
-  @IsString({ message: "Field '$property' be string" })
-  @MinLength(2, { message: "Field '$property' length must be more then 2" })
-  @MaxLength(20, { message: "Field '$property' length must be less then 20" })
+  @IsString({ message: "Поле '$property' должно быть строкой" })
+  @MinLength(2, {
+    message: "Длина поля '$property' должно быть более 2 символов",
+  })
+  @MaxLength(20, {
+    message: "Длина поля '$property' должно быть менее 20 символов",
+  })
   name: string;
-  @IsString({ message: "Field '$property' be string" })
-  @MaxLength(120, { message: "Field '$property' length must be less then 120" })
+  @IsString({ message: "Поле '$property' должно быть строкой" })
+  @MaxLength(120, {
+    message: "Длина поля '$property' должно быть менее 120 символов",
+  })
   @IsOptional()
   bio: string;
-  @TagExists({ message: 'Current type does not exist' })
+  @TagExists({ message: 'Текущий тип не существует' })
   type: number;
-  @TagExists({ message: 'Current breed does not exist' })
+  @TagExists({ message: 'Текущая порода не существует' })
   @IsOptional()
   breed: number;
-  @IsString({ message: "Field '$property' be string" })
+  @IsString({ message: "Поле '$property' должно быть строкой" })
   @IsOptional()
   date_of_birthday: string;
   avatar: Express.Multer.File;

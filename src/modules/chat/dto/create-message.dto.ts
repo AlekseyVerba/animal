@@ -23,7 +23,7 @@ export class CreateMessageDto {
     description: 'Кому отправляем сообщение',
     required: true,
   })
-  @IsUserExist({ message: "User with uid '$value' does not exist!" })
+  @IsUserExist({ message: "Пользователь с uid '$value' не существует" })
   partner_uid: string;
 
   @ApiProperty({

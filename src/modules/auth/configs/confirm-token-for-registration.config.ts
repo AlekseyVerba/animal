@@ -16,7 +16,7 @@ export const RegistrationConfirmTokenApiResponse: ApiResponseOptions = {
     type: 'object',
     example: {
       status: true,
-      message: 'User successfully verified',
+      message: 'Пользователь успешно верифицирован',
     },
   },
 };

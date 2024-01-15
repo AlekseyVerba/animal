@@ -48,7 +48,7 @@ export class FileService {
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
-        message: err.message || 'Error while working with file',
+        message: err.message || 'Ошибка при работе с файлом',
       };
 
       throw new HttpException(errObj, err.status || 500);
@@ -81,7 +81,7 @@ export class FileService {
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
-        message: err.message || 'Error while working with file',
+        message: err.message || 'Ошибка при работе с файлом',
       };
 
       throw new HttpException(errObj, err.status || 500);
@@ -113,7 +113,7 @@ export class FileService {
     } catch (e) {
       const objError: IResponseFail = {
         status: false,
-        message: 'File creation error',
+        message: 'Ошибка создания файла',
       };
       throw new InternalServerErrorException(objError);
     }
@@ -133,7 +133,7 @@ export class FileService {
       if (!fs.existsSync(fullPath)) {
         const objError: IResponseFail = {
           status: false,
-          message: 'File not found at given path',
+          message: 'Файл не найден по данному пути',
         };
         throw new InternalServerErrorException(objError);
       }

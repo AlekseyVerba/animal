@@ -23,11 +23,11 @@ export class GetPostsDto {
   search?: string;
 
   @IsOptional()
-  @IsPetExist({ message: "Pet with id '$value' does not exist!" })
+  @IsPetExist({ message: "Питомец с id '$value' не существует" })
   pet_id?: number;
 
   @IsOptional()
-  @IsUserExist({ message: "User with uid '$value' does not exist!" })
+  @IsUserExist({ message: "Пользователь с uid '$value' не существует" })
   user_uid: string;
 
   current_uid: string;

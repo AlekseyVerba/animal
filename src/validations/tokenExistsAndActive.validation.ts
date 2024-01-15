@@ -24,7 +24,7 @@ export class IsTokenExistsAndActiveConstraint
     const email = (args.object as any).email;
 
     const user = await this.userService.getUserByEmail(email);
-    console.log(user);
+
     if (!user) return false;
 
     const token = await this.tokenService.getToken({

@@ -31,13 +31,13 @@ import { GetCommentsQuery } from './dto/get-comments.query';
 //DECORATORS
 import { UserProperty } from 'src/decorators/userProperty.decorator';
 
-@ApiTags('Comment')
+@ApiTags('Комментарии')
 @Controller('comment')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Add comment' })
+  @ApiOperation({ summary: 'Добавить комментарий' })
   @ApiBody(AddCommentApiBody)
   @Post('add/:postId')
   async addCommentToProject(
@@ -56,7 +56,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Update comment' })
+  @ApiOperation({ summary: 'Обновить комментарий' })
   @ApiBody(UpdateCommentApiBody)
   @Put(':commentId/update')
   async updateComment(
@@ -75,7 +75,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Delete comment' })
+  @ApiOperation({ summary: 'Удалить комментарий' })
   @Delete(':commentId/delete')
   async deleteComment(
     @Param() { commentId }: CommentIdParam,
@@ -131,7 +131,7 @@ export class CommentController {
     required: false,
   })
   @ApiOperation({
-    summary: 'Get comments from post',
+    summary: 'Получение комментариев поста',
     description: 'Получение комментариев идет с последних записей',
   })
   @Get(':postId/comments')

@@ -40,7 +40,7 @@ export class ProfileService {
     if (current_uid === profile) {
       const errObj: IResponseFail = {
         status: false,
-        message: 'You can not follow to yourself',
+        message: 'Вы не можете подписаться на себя',
       };
 
       throw new ConflictException(errObj);
@@ -58,7 +58,7 @@ export class ProfileService {
     if (isCurrectUserFollowToUser) {
       const errObj: IResponseFail = {
         status: false,
-        message: 'Current user has already subscribed to this profile',
+        message: 'Текущий пользователь уже подписан на данный профиль',
       };
 
       throw new ConflictException(errObj);
@@ -83,7 +83,7 @@ export class ProfileService {
     if (current_uid === profile) {
       const errObj: IResponseFail = {
         status: false,
-        message: 'You can not unfollow from yourself',
+        message: 'Вы не можете отписаться от себя',
       };
 
       throw new ConflictException(errObj);
@@ -101,7 +101,7 @@ export class ProfileService {
     if (!isCurrectUserFollowToUser) {
       const errObj: IResponseFail = {
         status: false,
-        message: 'Current user is not subscribed to this profile',
+        message: 'Данный пользователь не подписан на этот профиль',
       };
 
       throw new ConflictException(errObj);

@@ -4,6 +4,6 @@ import { TagExists } from 'src/validations/tagExists.validation';
 export class AddTagToUserDto {
   @IsEmpty()
   uid: string;
-  @TagExists({ message: 'Current tag does not exist' })
+  @TagExists({ message: 'Текущий тэг не существует' })
   tag_id: number;
 }

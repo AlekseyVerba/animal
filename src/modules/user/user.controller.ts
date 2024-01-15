@@ -38,19 +38,19 @@ import { UpdateUserDto } from './dto/updateUser.dto';
 //PIPES
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 
-@ApiTags('User')
+@ApiTags('Пользователь')
 @UsePipes(new ValidationPipe())
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: 'Get all users. It is a temporary method!' })
+  @ApiOperation({ summary: 'Получить все пользователей. ВРЕМЕННЫЙ МЕТОД' })
   @Get('all')
   async getAllUsers() {
     return await this.userService.getAllUsers();
   }
 
-  @ApiOperation({ summary: 'Check exist user by email' })
+  @ApiOperation({ summary: 'Проверить пользователя на существование по email' })
   @ApiBody(CheckUserByEmailApiBody)
   @ApiResponse(CheckUserApiResponse)
   @Post('check-user-by-email')
@@ -60,7 +60,7 @@ export class UserController {
     return await this.userService.isUserExistByEmail(email);
   }
 
-  @ApiOperation({ summary: 'Delete user' })
+  @ApiOperation({ summary: 'Удаление пользователя' })
   @UseGuards(AuthGuard)
   @Delete(':userUid')
   async deleteUser(
@@ -70,12 +70,12 @@ export class UserController {
 
     return {
       status: true,
-      message: `User with uid - ${userUid} deleted successfully`,
+      message: `Пользователь с uid - ${userUid} успешно удалён`,
     };
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Update user' })
+  @ApiOperation({ summary: 'Обновить пользователя' })
   @ApiBody(UpdateUserApiBody)
   @UseInterceptors(
     FileInterceptor('avatar', {
@@ -95,7 +95,7 @@ export class UserController {
 
     return {
       status: true,
-      message: 'User has been updated',
+      message: 'Пользователь успешно обновлён',
       data,
     };
   }

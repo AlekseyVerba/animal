@@ -13,7 +13,9 @@ export class UpdatePostDto {
   id: number;
 
   @IsString()
-  @MaxLength(100, { message: "Field '$property' length must be less then 100" })
+  @MaxLength(100, {
+    message: "Длина поля '$property' должно быть менее 100 символов",
+  })
   title: string;
 
   @IsObject()

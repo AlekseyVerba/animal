@@ -6,7 +6,7 @@ export class UpdateCommentDto {
   @IsString()
   value: string;
 
-  @IsUserExist({ message: "User with uid '$value' does not exist!" })
+  @IsUserExist({ message: "Пользователь с uid '$value' не существует" })
   @IsOptional()
   reply_uid: string;
 

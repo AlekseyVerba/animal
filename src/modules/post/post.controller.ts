@@ -34,13 +34,13 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
 import { GetLinePostsDto } from './dto/get-line-posts.dto';
 
-@ApiTags('Post')
+@ApiTags('Посты')
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Create a post' })
+  @ApiOperation({ summary: 'Создание поста' })
   @ApiBody(CreatePostApiBody)
   @Post('create')
   @UseInterceptors(AnyFilesInterceptor())
@@ -59,7 +59,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Update post' })
+  @ApiOperation({ summary: 'Обновление поста' })
   @ApiBody(UpdatePostApiBody)
   @Put(':postId/update')
   @UseInterceptors(AnyFilesInterceptor())
@@ -80,7 +80,7 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Delete post' })
+  @ApiOperation({ summary: 'Удаление поста' })
   @Delete(':postId/delete')
   async deletePost(
     @Param() { postId }: PostIdParam,
@@ -131,7 +131,7 @@ export class PostController {
     type: 'string',
     required: false,
   })
-  @ApiOperation({ summary: 'Get posts' })
+  @ApiOperation({ summary: 'Получение постов' })
   @Get('all')
   async getPosts(
     @UserProperty('uid') current_uid: string,
@@ -146,7 +146,9 @@ export class PostController {
   }
 
   @Get(':postId')
-  @ApiOperation({ summary: 'Get post.Получает последние 15 комментариев' })
+  @ApiOperation({
+    summary: 'Получение поста.Получает последние 15 комментариев',
+  })
   async getPost(
     @Param() { postId }: PostIdParam,
     @UserProperty('uid') current_uid: string,

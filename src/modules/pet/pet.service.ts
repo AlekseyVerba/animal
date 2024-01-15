@@ -94,7 +94,7 @@ export class PetService {
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
-        message: err.message || 'Error while working with file',
+        message: err.message || 'Ошибка при работе с файлом',
       };
 
       throw new HttpException(errObj, err.status || 500);
@@ -206,7 +206,7 @@ export class PetService {
     if (pet.user_uid != user_uid) {
       const objError: IResponseFail = {
         status: false,
-        message: 'You are not master this pet',
+        message: 'Вы не владелец данного питомца',
       };
 
       throw new ForbiddenException(objError);

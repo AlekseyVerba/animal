@@ -15,7 +15,7 @@ export const RememberPasswordApiResponse: ApiResponseOptions = {
     type: 'object',
     example: {
       status: true,
-      message: 'A code has been sent to your email. Confirmation required!',
+      message: 'На вашу почту был отправлен код. Необходимо подтверждение',
     },
   },
 };

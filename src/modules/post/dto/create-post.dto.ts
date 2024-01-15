@@ -10,7 +10,9 @@ import { IsPetExist } from 'src/validations/petExists.validation';
 
 export class CreatePostDto {
   @IsString()
-  @MaxLength(100, { message: "Field '$property' length must be less then 100" })
+  @MaxLength(100, {
+    message: "Длина поля '$property' должно быть менее 100 символов",
+  })
   title: string;
 
   @IsObject()
@@ -20,7 +22,7 @@ export class CreatePostDto {
   };
 
   @IsOptional()
-  @IsPetExist({ message: "Pet with id '$value' does not exist!" })
+  @IsPetExist({ message: "Питомец с id '$value' не существует" })
   pet_id: number;
 
   @IsOptional()

@@ -17,7 +17,7 @@ export const ChangePasswordApiResponse: ApiResponseOptions = {
     type: 'object',
     example: {
       status: true,
-      message: 'Password was changed',
+      message: 'Пароль был успешно изменен',
     },
   },
 };

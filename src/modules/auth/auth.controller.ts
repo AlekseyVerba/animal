@@ -61,12 +61,12 @@ import { IResponseSuccess } from '../../types/response/index.interface';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 @UsePipes(new ValidationPipe())
-@ApiTags('Auth')
+@ApiTags('Авторизация')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Check auth' })
+  @ApiOperation({ summary: 'Проверка авторизации' })
   @ApiBearerAuth('Bearer token')
   @ApiResponse(CheckAuthApiResponse)
   @Get('/check')
@@ -77,12 +77,12 @@ export class AuthController {
     const result = await this.authService.authCheck(uid);
     return {
       status: true,
-      message: 'User successfully verified',
+      message: 'Пользователь успешно верифицирован',
       data: result,
     };
   }
 
-  @ApiOperation({ summary: 'Change password' })
+  @ApiOperation({ summary: 'Изменить пароль' })
   @ApiBody(ChangePasswordApiBody)
   @ApiResponse(ChangePasswordApiResponse)
   @Post('/change-password/')
@@ -93,11 +93,11 @@ export class AuthController {
 
     return {
       status: true,
-      message: 'Password was changed',
+      message: 'Пароль был успешно изменен',
     };
   }
 
-  @ApiOperation({ summary: 'Registration' })
+  @ApiOperation({ summary: 'Регистрация' })
   @ApiBody(RegistrationApiBody)
   @ApiResponse(RegistrationApiResponse)
   @Post('registration')
@@ -108,12 +108,12 @@ export class AuthController {
 
     return {
       status: true,
-      message: 'A code has been sent to your email. Confirmation required!',
+      message: 'На вашу почту был отправлен код. Необходимо подтверждение',
       data: result,
     };
   }
 
-  @ApiOperation({ summary: 'Confirm code for registration' })
+  @ApiOperation({ summary: 'Подтверждение кода регистрации' })
   @ApiBody(RegistrationConfirmTokenApiBody)
   @ApiResponse(RegistrationConfirmTokenApiResponse)
   @Post('registration/confirm')
@@ -123,12 +123,12 @@ export class AuthController {
     const result = await this.authService.confirmRegistration(dto);
     return {
       status: true,
-      message: 'User successfully verified',
+      message: 'Пользователь успешно верифицирован',
       data: result,
     };
   }
 
-  @ApiOperation({ summary: 'Authorization' })
+  @ApiOperation({ summary: 'Авторизация' })
   @ApiBody(AuthorizationApiBody)
   @ApiResponse(AuthorizationApiResponse)
   @Post('login')
@@ -141,7 +141,7 @@ export class AuthController {
     };
   }
 
-  @ApiOperation({ summary: 'Remember password' })
+  @ApiOperation({ summary: 'Вспомнить пароль' })
   @ApiBody(RememberPasswordApiBody)
   @ApiResponse(RememberPasswordApiResponse)
   @Post('remember-password')
@@ -152,7 +152,7 @@ export class AuthController {
 
     return {
       status: true,
-      message: 'A code has been sent to your email. Confirmation required!',
+      message: 'На вашу почту был отправлен код. Необходимо подтверждение',
     };
   }
 }

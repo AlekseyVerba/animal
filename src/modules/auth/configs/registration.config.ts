@@ -16,7 +16,7 @@ export const RegistrationApiResponse: ApiResponseOptions = {
     type: 'object',
     example: {
       status: true,
-      message: 'A code has been sent to your email. Confirmation required!',
+      message: 'На вашу почту был отправлен код. Необходимо подтверждение',
       data: '4d58a734-efd1-4b6a-9ff6-70922bd6cd9a',
     },
   },

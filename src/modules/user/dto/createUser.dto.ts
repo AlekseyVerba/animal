@@ -8,10 +8,14 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsEmail({}, { message: "Field '$property' must be email" })
+  @IsEmail({}, { message: "Поле '$property' должно быть email" })
   email: string;
-  @IsString({ message: "Field '$property' be string" })
-  @MinLength(8, { message: "Field '$property' length must be more then 8" })
-  @MaxLength(16, { message: "Field '$property' length must be less then 16" })
+  @IsString({ message: "Поле '$property' должно быть строкой" })
+  @MinLength(8, {
+    message: "Длина поля '$property' должна быть более 8 символов",
+  })
+  @MaxLength(16, {
+    message: "Длина поля '$property' должно быть менее 16 символов",
+  })
   password: string;
 }

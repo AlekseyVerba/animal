@@ -35,14 +35,14 @@ import { ValidationPipe } from 'src/pipes/validation.pipe';
 //CONFIGS
 import { getProfileFollowersApiBody } from './configs/getProfileFollowers.config';
 
-@ApiTags('Profile')
+@ApiTags('Профиль')
 @UsePipes(new ValidationPipe())
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Follow to user' })
+  @ApiOperation({ summary: 'Подписаться на пользователя' })
   @Post('user/follow/:user_uid')
   async followToUser(
     @Param() dto: FollowAndUnfollowUserDto,
@@ -61,7 +61,7 @@ export class ProfileController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Unfollow from user' })
+  @ApiOperation({ summary: 'Отписаться от пользователя' })
   @Delete('user/unfollow/:user_uid')
   async unfollowFromUser(
     @Param() dto: FollowAndUnfollowUserDto,
@@ -80,7 +80,7 @@ export class ProfileController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Follow to pet' })
+  @ApiOperation({ summary: 'Подписаться на питомца' })
   @Post('pet/follow/:pet_id')
   async followToPet(
     @Param() dto: FollowAndUnfollowPetDto,
@@ -99,7 +99,7 @@ export class ProfileController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Unfollow from pet' })
+  @ApiOperation({ summary: 'Отписаться от питомца' })
   @Delete('pet/unfollow/:pet_id')
   async unfollowFromPet(
     @Param() dto: FollowAndUnfollowPetDto,
@@ -117,7 +117,7 @@ export class ProfileController {
     };
   }
 
-  @ApiOperation({ summary: 'Get profile pet' })
+  @ApiOperation({ summary: 'Получить профиль питомца' })
   @Get('pet/:pet_id')
   async getProfilePet(
     @Param() dto: GetProfilePetDto,
@@ -134,7 +134,7 @@ export class ProfileController {
     };
   }
 
-  @ApiOperation({ summary: 'Get users counts following' })
+  @ApiOperation({ summary: 'Получить количество подписок пользователя' })
   @Get('user/:user_uid/counts/following')
   async getUsersCountsFollowing(@Param() { user_uid }: GetProfileUserDto) {
     const data = await this.profileService.getUsersCountsFollowing(user_uid);
@@ -145,7 +145,10 @@ export class ProfileController {
     };
   }
 
-  @ApiOperation({ summary: 'Get following users in tab users' })
+  @ApiOperation({
+    summary:
+      'Получить пользователей на которых подписан пользователь (таб пользователи)',
+  })
   @ApiQuery({
     name: 'limit',
     type: 'number',
@@ -174,7 +177,9 @@ export class ProfileController {
     };
   }
 
-  @ApiOperation({ summary: 'Get following pets in tab pets' })
+  @ApiOperation({
+    summary: 'Получить питомцев на которых подписан пользователь (таб питомцы)',
+  })
   @ApiQuery({
     name: 'limit',
     type: 'number',
@@ -203,7 +208,7 @@ export class ProfileController {
     };
   }
 
-  @ApiOperation({ summary: 'Get profile user' })
+  @ApiOperation({ summary: 'Получить профайл пользователя' })
   @Get('user/:user_uid')
   async getProfileUser(
     @Param() dto: GetProfileUserDto,

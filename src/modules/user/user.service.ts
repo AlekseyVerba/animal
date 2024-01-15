@@ -115,8 +115,6 @@ export class UserService {
   }
 
   async getUserByEmail(email: string): Promise<IUser> {
-    console.log(this.database);
-
     const User = (
       await this.database.query(
         `
@@ -162,7 +160,7 @@ export class UserService {
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
-        message: err.message || 'User is not found',
+        message: err.message || 'Пользователь не найден',
       };
 
       throw new HttpException(errObj, err.status || 500);
@@ -243,7 +241,7 @@ export class UserService {
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
-        message: err.message || 'Error while working with file',
+        message: err.message || 'Ошибка при работе с файлом',
       };
 
       throw new HttpException(errObj, err.status || 500);
@@ -258,7 +256,7 @@ export class UserService {
       if (userByNickname && userByNickname.uid !== uid) {
         const errObj: IResponseFail = {
           status: false,
-          message: 'This nickname is already taken. Try another',
+          message: 'Этот nickname уже занят. Попробуйте другой',
         };
 
         throw new ConflictException(errObj);

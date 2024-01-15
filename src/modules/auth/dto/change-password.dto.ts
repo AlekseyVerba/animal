@@ -3,15 +3,21 @@ import { IsTokenExistsAndActive } from 'src/validations/tokenExistsAndActive.val
 import { IsUserExistByEmail } from 'src/validations/userExistByEmail.validation';
 
 export class ChangePasswordDto {
-  @IsUserExistByEmail({ message: "User with email '$value' does not exist" })
-  @IsEmail({}, { message: "Field '$property' must be email" })
+  @IsUserExistByEmail({
+    message: "Пользователь с email '$value' не существует",
+  })
+  @IsEmail({}, { message: "Поле '$property' должно быть email" })
   email: string;
-  @IsString({ message: "Field '$property' be string" })
-  @MinLength(8, { message: "Field '$property' length must be more then 8" })
-  @MaxLength(16, { message: "Field '$property' length must be less then 16" })
+  @IsString({ message: "Поле '$property' должно быть строкой" })
+  @MinLength(8, {
+    message: "Длина поля '$property' должно быть более 8 символов",
+  })
+  @MaxLength(16, {
+    message: "Длина поля '$property' должно быть менее 16 символов",
+  })
   password: string;
   @IsTokenExistsAndActive({
-    message: 'Current user does not have this code. Or code is not active',
+    message: 'Данный пользователь не имеет текущий код или токен не активен',
   })
   code: string;
 }

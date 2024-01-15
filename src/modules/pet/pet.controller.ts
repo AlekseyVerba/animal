@@ -20,13 +20,13 @@ import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreatePetApiBody } from './configs/create-pet.config';
 import { DeletePetDto } from './dto/deletePet.dto';
 
-@ApiTags('Pet')
+@ApiTags('Питомцы')
 @UsePipes(new ValidationPipe())
 @Controller('pet')
 export class PetController {
   constructor(private readonly petService: PetService) {}
 
-  @ApiOperation({ summary: 'Create a pet' })
+  @ApiOperation({ summary: 'Создание питомца' })
   @ApiBody(CreatePetApiBody)
   @UseGuards(AuthGuard)
   @UseInterceptors(
@@ -51,7 +51,7 @@ export class PetController {
     };
   }
 
-  @ApiOperation({ summary: 'Delete a pet' })
+  @ApiOperation({ summary: 'Удаление питомца' })
   @UseGuards(AuthGuard)
   @Delete(':pet_id')
   async delete(@Param() dto: DeletePetDto, @UserProperty('uid') uid: string) {

@@ -18,12 +18,12 @@ export const CreatePetApiBody: ApiBodyOptions = {
       type: {
         type: 'number',
         required: ['true'],
-        description: 'It is id parent tag',
+        description: 'Id родительского тэга',
       },
       breed: {
         type: 'number',
         required: ['false'],
-        description: 'It is id child tag',
+        description: 'Id дочернего тэга',
       },
       date_of_birthday: {
         type: 'string',

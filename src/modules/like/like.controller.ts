@@ -34,7 +34,7 @@ import { PostIdParam } from '../post/dto/postId.param.dto';
 import { GetLikesQuery } from './dto/get-likes.query';
 import { CommentIdParam } from '../comment/dto/commentId.param';
 
-@ApiTags('Like')
+@ApiTags('Лайки')
 @Controller('like')
 export class LikeController {
   constructor(
@@ -43,7 +43,7 @@ export class LikeController {
   ) {}
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Add like' })
+  @ApiOperation({ summary: 'Добавить лайк' })
   @ApiBody(AddLikeApiBody)
   @Post('add')
   async addLike(
@@ -65,7 +65,7 @@ export class LikeController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Delete like' })
+  @ApiOperation({ summary: 'Удалить лайн' })
   @ApiBody(DeleteLikeApiBody)
   @Delete('/delete')
   async deleteLike(
@@ -86,7 +86,7 @@ export class LikeController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Update like' })
+  @ApiOperation({ summary: 'Обновить лайк' })
   @ApiBody(AddLikeApiBody)
   @Put('update')
   async updateLike(
@@ -107,7 +107,7 @@ export class LikeController {
     };
   }
 
-  @ApiOperation({ summary: 'Get like from post' })
+  @ApiOperation({ summary: 'Получить лайки поста' })
   @ApiQuery({
     name: 'offset',
     type: 'number',
@@ -145,7 +145,7 @@ export class LikeController {
     };
   }
 
-  @ApiOperation({ summary: 'Get like from comment' })
+  @ApiOperation({ summary: 'Получить лайки коммента' })
   @ApiQuery({
     name: 'offset',
     type: 'number',

@@ -2,11 +2,15 @@ import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 import { IsUserExistByEmail } from 'src/validations/userExistByEmail.validation';
 
 export class LoginDto {
-  @IsUserExistByEmail({ message: 'Incorrect data' })
-  @IsEmail({}, { message: "Field '$property' must be email" })
+  @IsUserExistByEmail({ message: 'Некорректные данные' })
+  @IsEmail({}, { message: "Поле '$property' должно быть email" })
   email: string;
-  @IsString({ message: "Field '$property' be string" })
-  @MinLength(8, { message: "Field '$property' length must be more then 8" })
-  @MaxLength(16, { message: "Field '$property' length must be less then 16" })
+  @IsString({ message: "Поле '$property' должно быть строкой" })
+  @MinLength(8, {
+    message: "Длина поля '$property' должно быть более 8 символов",
+  })
+  @MaxLength(16, {
+    message: "Длина поля '$property' должно быть менее 16 символов",
+  })
   password: string;
 }

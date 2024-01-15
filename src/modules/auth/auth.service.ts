@@ -1,6 +1,7 @@
 // PROJECT
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Inject,
   Injectable,
@@ -25,6 +26,7 @@ import { IResponseFail } from '../../types/response/index.interface';
 import { MessageService } from '../message/message.service';
 import { TokenService } from '../token/token.service';
 import { UserService } from '../user/user.service';
+import { IUser } from '../user/interfaces/user.interface';
 
 @Injectable()
 export class AuthService {
@@ -43,21 +45,25 @@ export class AuthService {
 
       const hashPassword = await hash(password, 8);
 
-      // Create user
-      const user = (
-        await client.query(
-          `
-            INSERT INTO users(email, password) 
-            VALUES(
-                $1, $2
-            )
-            RETURNING *
-        `,
-          [email, hashPassword],
-        )
-      ).rows[0];
+      let user = await this.userService.getUserByEmail(email);
 
-      const code = `1111`;
+      if (!user) {
+        // Create user
+        user = (
+          await client.query(
+            `
+                    INSERT INTO users(email, password) 
+                    VALUES(
+                        $1, $2
+                    )
+                    RETURNING *
+                `,
+            [email, hashPassword],
+          )
+        ).rows[0];
+      }
+
+      const code = `1112`;
 
       // Create token
       await client.query(
@@ -77,7 +83,7 @@ export class AuthService {
       );
 
       // Send email
-      await this.messageService.registration({ code, email });
+      this.messageService.registration({ code, email });
 
       await client.query('COMMIT');
 
@@ -111,7 +117,7 @@ export class AuthService {
     if (!candidate.isActivate) {
       const objError: IResponseFail = {
         status: false,
-        message: 'User is not active',
+        message: 'Пользователь не активен',
       };
 
       throw new BadRequestException(objError);
@@ -122,7 +128,7 @@ export class AuthService {
     if (!checkPassword) {
       const objError: IResponseFail = {
         status: false,
-        message: 'Incorrect data',
+        message: 'Некорректные данные',
       };
 
       throw new BadRequestException(objError);
@@ -183,6 +189,15 @@ export class AuthService {
     try {
       const candidate = await this.userService.getUserByEmail(email);
 
+      if (!candidate.isActive) {
+        const objError: IResponseFail = {
+          status: false,
+          message: 'Пользователь не активен',
+        };
+
+        throw new ForbiddenException(objError);
+      }
+
       const code = '1111';
 
       // Create token
@@ -202,7 +217,7 @@ export class AuthService {
         ],
       );
 
-      await this.messageService.rememberPassword({ code, email });
+      this.messageService.rememberPassword({ code, email });
 
       await client.query('COMMIT');
 

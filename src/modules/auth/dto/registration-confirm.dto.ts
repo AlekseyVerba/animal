@@ -3,11 +3,13 @@ import { IsUserExistByEmail } from 'src/validations/userExistByEmail.validation'
 import { IsTokenExistsAndActive } from 'src/validations/tokenExistsAndActive.validation';
 
 export class RegistrationConfirmDto {
-  @IsUserExistByEmail({ message: "User with email '$value' does not exist" })
-  @IsEmail({}, { message: "Field '$property' must be email" })
+  @IsUserExistByEmail({
+    message: "Пользователь с email '$value' не существует",
+  })
+  @IsEmail({}, { message: "Поле '$property' должно быть email" })
   email: string;
   @IsTokenExistsAndActive({
-    message: 'Current user does not have this code. Or code is not active',
+    message: 'Данный пользователь не имеет текущий код или токен не активен',
   })
   code: string;
 }
