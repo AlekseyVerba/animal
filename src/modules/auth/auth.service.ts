@@ -63,7 +63,7 @@ export class AuthService {
         ).rows[0];
       }
 
-      const code = `1112`;
+      const code = `1111`;
 
       // Create token
       await client.query(
