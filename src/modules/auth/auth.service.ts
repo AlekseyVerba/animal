@@ -189,7 +189,7 @@ export class AuthService {
     try {
       const candidate = await this.userService.getUserByEmail(email);
 
-      if (!candidate.isActive) {
+      if (!candidate.isActivate) {
         const objError: IResponseFail = {
           status: false,
           message: 'Пользователь не активен',
