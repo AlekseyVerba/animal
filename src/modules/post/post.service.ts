@@ -34,7 +34,6 @@ export class PostService {
     files: Array<Express.Multer.File>,
     { body, pet_id, title, tags, current_uid, main_image }: CreatePostDto,
   ) {
-
     if (pet_id) {
       const isMasterPet = (
         await this.database.query(
@@ -46,13 +45,13 @@ export class PostService {
           [current_uid, pet_id],
         )
       ).rows[0];
-  
+
       if (!isMasterPet) {
         const errObj: IResponseFail = {
           status: false,
           message: 'Вы не владелец этого питомца',
         };
-  
+
         throw new HttpException(errObj, HttpStatus.FORBIDDEN);
       }
     }
@@ -74,7 +73,7 @@ export class PostService {
     const post = (
       await this.database.query(
         'INSERT INTO posts(title, body, pet_id, user_uid, main_image) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [title, body, pet_id, pet_id ? null : current_uid ,main_image],
+        [title, body, pet_id, pet_id ? null : current_uid, main_image],
       )
     ).rows[0];
 
@@ -224,7 +223,7 @@ export class PostService {
     return true;
   }
 
-  async getPostsCount({ pet_id, user_uid ,search }: GetPostsDto) {
+  async getPostsCount({ pet_id, user_uid, search }: GetPostsDto) {
     return (
       await this.database.query(
         `
@@ -246,11 +245,10 @@ export class PostService {
                 )
                     
                 ${
-                  pet_id || user_uid 
-                    ? pet_id ? 
-                      `AND posts.pet_id = ${pet_id}`
-                      :
-                      `AND posts.user_uid = ${user_uid}`
+                  pet_id || user_uid
+                    ? pet_id
+                      ? `AND posts.pet_id = ${pet_id}`
+                      : `AND posts.user_uid = ${user_uid}`
                     : ''
                 }
         `,
@@ -379,11 +377,10 @@ export class PostService {
                 ${pet_id ? `AND posts.pet_id = ${pet_id}` : ''}
 
                 ${
-                  pet_id || user_uid 
-                    ? pet_id ? 
-                      `AND posts.pet_id = ${pet_id}`
-                      :
-                      `AND posts.user_uid = ${user_uid}`
+                  pet_id || user_uid
+                    ? pet_id
+                      ? `AND posts.pet_id = ${pet_id}`
+                      : `AND posts.user_uid = ${user_uid}`
                     : ''
                 }
 
@@ -540,9 +537,13 @@ export class PostService {
                     (post_tag.tag_id IN (SELECT tag_id FROM user_tag WHERE user_uid = $3))
                       AND
                     (posts.id NOT IN (SELECT post_id FROM post_views WHERE user_uid = $3))
-                    ${seenIdPosts.length ? `AND (posts.id NOT IN (${seenIdPosts
-                      .map((id) => id + '::int')
-                      .join(', ')}))` : ''}
+                    ${
+                      seenIdPosts.length
+                        ? `AND (posts.id NOT IN (${seenIdPosts
+                            .map((id) => id + '::int')
+                            .join(', ')}))`
+                        : ''
+                    }
                     `
                   }
                   
@@ -557,7 +558,7 @@ export class PostService {
           `,
         [limit, offset, current_uid],
       ),
-     this.getLinePostsCount({ current_uid, order, seenIdPosts })
+      this.getLinePostsCount({ current_uid, order, seenIdPosts }),
     ]);
 
     return {

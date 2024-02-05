@@ -37,6 +37,10 @@ export const UpdateUserApiBody: ApiBodyOptions = {
           type: 'number',
         },
       },
+      avatar: {
+        type: 'string',
+        format: 'binary',
+      },
     },
   },
 };
