@@ -29,7 +29,7 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter());
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
-
+  console.log('hello')
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
