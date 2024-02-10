@@ -33,18 +33,18 @@ export class FileService {
     try {
       const newNameFile = v4();
 
-      return (
-        (await sharp(`${PATH_FILE_STATIC}/${file.fullPath}`)
-          .jpeg({ quality })
-          .resize(resizeOptions)
-          .toFile(
-            join(PATH_FILE_STATIC, file.nameDir, newNameFile + '.jpg'),
-            (err, inf) => {
-              console.log(err);
-              console.log(inf);
-            },
-          )) as any
-      ).options.fileOut;
+      const res = (await sharp(`${PATH_FILE_STATIC}/${file.fullPath}`)
+        .jpeg({ quality })
+        .resize(resizeOptions)
+        .toFile(
+          join(PATH_FILE_STATIC, file.nameDir, newNameFile + '.jpg'),
+          (err, inf) => {
+            console.log(err);
+            console.log(inf);
+          },
+        )) as any;
+
+      return res.options.fileOut;
     } catch (err) {
       const errObj: IResponseFail = {
         status: false,
@@ -129,7 +129,7 @@ export class FileService {
   async deleteFile(pathFile: string): Promise<boolean> {
     try {
       const fullPath = `${PATH_FILE_STATIC}/${pathFile}`;
-      console.log(fullPath);
+
       if (!fs.existsSync(fullPath)) {
         const objError: IResponseFail = {
           status: false,

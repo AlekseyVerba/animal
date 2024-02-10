@@ -19,6 +19,7 @@ import { DATABASE_POOL } from 'src/constants/database.constants';
 //SERVICES
 import { FileService } from 'src/modules/file/file.service';
 import imageSize from 'image-size';
+import { PATH_FILE_STATIC } from 'src/constants/path-file-static.constant';
 
 @Injectable()
 export class UserService {
@@ -205,7 +206,7 @@ export class UserService {
             ? this.fileService.createResizedImage(file, 70, { width: 800 })
             : this.fileService.generateFileToJPG(file, 70),
         ])
-      ).map((avatar: string) => avatar.split('assets/')[1]);
+      ).map((avatar: string) => avatar.split(`${PATH_FILE_STATIC}/`)[1]);
 
       if (currentUserAvatar) {
         this.fileService.deleteFile(currentUserAvatar.small);
@@ -310,7 +311,7 @@ export class UserService {
       }
 
       let query = ``;
-      let i: number = 2;
+      let i = 2;
       const values = [];
 
       for (const key in dto) {

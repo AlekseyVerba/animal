@@ -90,7 +90,6 @@ export class AuthService {
       return user.uid;
     } catch (err) {
       await client.query('ROLLBACK');
-
       const objError: IResponseFail = {
         status: false,
         message: err.message,

@@ -13,59 +13,27 @@ import { IResponseFail } from 'src/types/response/index.interface';
 export class MessageService {
   constructor(private mailerService: MailerService) {}
 
-  registration({ code, email }: RegistrationDto): void {
+  async registration({ code, email }: RegistrationDto): Promise<void> {
     try {
-      this.mailerService.sendMail({
+      await this.mailerService.sendMail({
         to: email,
         subject: 'test',
         text: Messages.registration(code),
       });
     } catch (err) {
-      if (err.responseCode === 550) {
-        const objError: IResponseFail = {
-          status: false,
-          message:
-            'Ошибка при отправлении почтового сообщения. Проверьте корректность почтовой формы',
-        };
-
-        throw new BadRequestException(objError);
-      }
-
-      const objError: IResponseFail = {
-        status: false,
-        message:
-          'Ошибка при отправлении почтового сообщения. Попробуйте ещё раз',
-      };
-
-      throw new HttpException(objError, err.responseCode || err.status || 500);
+      console.log(err.message);
     }
   }
 
-  rememberPassword({ code, email }: RememberPasswordDto): void {
+  async rememberPassword({ code, email }: RememberPasswordDto): Promise<void> {
     try {
-      this.mailerService.sendMail({
+      await this.mailerService.sendMail({
         to: email,
         subject: 'test',
         html: Messages.rememberPassword(code),
       });
     } catch (err) {
-      if (err.responseCode === 550) {
-        const objError: IResponseFail = {
-          status: false,
-          message:
-            'Ошибка при отправлении почтового сообщения. Проверьте корректность почтовой формы',
-        };
-
-        throw new BadRequestException(objError);
-      }
-
-      const objError: IResponseFail = {
-        status: false,
-        message:
-          'Ошибка при отправлении почтового сообщения. Попробуйте ещё раз',
-      };
-
-      throw new HttpException(objError, err.responseCode || err.status || 500);
+      console.log(err.message);
     }
   }
 }

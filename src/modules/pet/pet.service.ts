@@ -11,6 +11,7 @@ import { IResponseFail } from 'src/types/response/index.interface';
 import { FileService } from '../file/file.service';
 import { CreateAndUpdatePetDto } from './dto/createPet.dto';
 import { DeletePetDto } from './dto/deletePet.dto';
+import { PATH_FILE_STATIC } from 'src/constants/path-file-static.constant';
 
 @Injectable()
 export class PetService {
@@ -58,7 +59,7 @@ export class PetService {
             ? this.fileService.createResizedImage(file, 70, { width: 800 })
             : this.fileService.generateFileToJPG(file, 70),
         ])
-      ).map((avatar: string) => avatar.split('assets/')[1]);
+      ).map((avatar: string) => avatar.split(`${PATH_FILE_STATIC}/`)[1]);
 
       if (currentPetAvatar) {
         this.fileService.deleteFile(currentPetAvatar.small);
@@ -156,9 +157,6 @@ export class PetService {
         query = query.slice(0, -2);
         valuesDB = valuesDB.slice(0, -2);
       }
-
-      console.log(query);
-      console.log(valuesDB);
 
       const Pet = (
         await client.query(

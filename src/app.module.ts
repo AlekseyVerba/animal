@@ -4,9 +4,6 @@ import { AppService } from './app.service';
 import { Pool } from 'pg';
 import { ServeStaticModule } from '@nestjs/serve-static';
 
-import { ConfigModule } from '@nestjs/config';
-import { join } from 'path';
-
 //CONSTANTS
 import { PATH_FILE_STATIC } from './constants/path-file-static.constant';
 
@@ -29,6 +26,8 @@ import { ChatModule } from './modules/chat/chat.module';
 
 //CONSTANTS
 import { DATABASE_POOL } from './constants/database.constants';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 @Module({
   imports: [
@@ -60,6 +59,10 @@ import { DATABASE_POOL } from './constants/database.constants';
         password: process.env.POSTGRES_PASSWORD,
         port: Number(process.env.POSTGRES_PORT),
       }),
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
   ],
   exports: [

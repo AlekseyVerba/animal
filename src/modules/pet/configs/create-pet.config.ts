@@ -16,18 +16,22 @@ export const CreatePetApiBody: ApiBodyOptions = {
         required: ['false'],
       },
       type: {
-        type: 'number',
-        required: ['true'],
+        type: 'string',
+        required: ['false'],
         description: 'Id родительского тэга',
       },
       breed: {
-        type: 'number',
+        type: 'string',
         required: ['false'],
         description: 'Id дочернего тэга',
       },
       date_of_birthday: {
         type: 'string',
         required: ['false'],
+      },
+      avatar: {
+        type: 'string',
+        format: 'binary',
       },
     },
   },
