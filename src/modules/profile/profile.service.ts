@@ -250,7 +250,8 @@ export class ProfileService {
                                       'middle', pet_avatar.middle,
                                       'large', pet_avatar.large,
                                       'default_avatar', pet_avatar.default_avatar
-                                  )
+                                  ),
+                                    'followers_count', (SELECT COUNT(*) FROM user_pet_followers WHERE user_pet_followers.pet_id = pets.id)
                               )
                           END
                       ) FILTER (WHERE pets.id IS NOT NULL),

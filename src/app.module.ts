@@ -28,9 +28,11 @@ import { ChatModule } from './modules/chat/chat.module';
 import { DATABASE_POOL } from './constants/database.constants';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: PATH_FILE_STATIC,
     }),
